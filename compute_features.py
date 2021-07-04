@@ -1,7 +1,7 @@
 """This module is used for computing social and map features for motion forecasting baselines.
 
 Example usage:
-    $ python compute_features.py --data_dir ~/val/data 
+    $ python compute_features.py --data_dir ~/val/data
         --feature_dir ~/val/features --mode val
 """
 
@@ -41,6 +41,9 @@ def parse_arguments() -> Any:
                         required=True,
                         type=str,
                         help="train/val/test")
+    parser.add_argument("--save_mode",
+                        type=str,
+                        help="train/val/test")
     parser.add_argument(
         "--batch_size",
         default=100,
@@ -69,7 +72,7 @@ def load_seq_save_features(
         social_features_utils_instance: SocialFeaturesUtils,
 ) -> None:
     """Load sequences, compute features, and save them.
-    
+
     Args:
         start_idx : Starting index of the current batch
         sequences : Sequence file names
@@ -204,7 +207,7 @@ def merge_saved_features(batch_save_dir: str) -> None:
 
     # Save the features for all the sequences into a single file
     all_features_df.to_pickle(
-        f"{args.feature_dir}/forecasting_features_{args.mode}.pkl")
+        f"{args.feature_dir}/forecasting_features_{args.save_mode}.pkl")
 
 
 if __name__ == "__main__":
@@ -218,6 +221,7 @@ if __name__ == "__main__":
 
     sequences = os.listdir(args.data_dir)
     temp_save_dir = tempfile.mkdtemp()
+    print(temp_save_dir)
 
     num_sequences = _FEATURES_SMALL_SIZE if args.small else len(sequences)
 
