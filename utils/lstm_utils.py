@@ -110,6 +110,10 @@ class LSTMDataset(Dataset):
         for k, v in config.LSTM_HELPER_DICT_IDX.items():
             helpers[v] = locals()[k.lower()]
 
+        # Add programs into the helper
+        programs = helper_df['PROG'].values
+        helpers.append(programs)
+
         return tuple(helpers)
 
 
