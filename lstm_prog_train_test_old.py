@@ -32,7 +32,6 @@ from logger import Logger
 import utils.baseline_config as config
 import utils.baseline_utils as baseline_utils
 from utils.lstm_utils import ModelUtils, LSTMDataset
-from prog_utils import * 
 
 use_cuda = torch.cuda.is_available()
 if use_cuda:
@@ -287,15 +286,10 @@ def train(
         # Pack all centerlines into one tensor
         for j in range(len(helpers)):
             cls_num.append(len(helpers[j][2])-cls_num[-1])
-            for k in range(10):
+            for k in range(len(helpers[j][2])):
                 # Downsample centerlines by 10
-                if k < len(helpers[j][2]):
-                    cl_current = torch.FloatTensor(helpers[j][2][k])[::10, :]
-                # pad 0-sequence to ensure that each datum has the same number of centerlines
-                else:
-                    cl_current = torch.zeros((16,2))
+                cl_current = torch.FloatTensor(helpers[j][2][k])[::10, :]
                 cls.append(cl_current)
-
         cls_num = cls_num[1:]
         cls = torch.nn.utils.rnn.pad_sequence(cls, batch_first=True)
 
@@ -318,8 +312,9 @@ def train(
 
         # Zero the gradients
         if use_traj:
+            encoder_optimizer.zero_grad()
             decoder_optimizer.zero_grad()
-        encoder_optimizer.zero_grad()
+
         cls_encoder_optimizer.zero_grad()
         prog_decoder_optimizer.zero_grad()
 
@@ -340,90 +335,72 @@ def train(
             cls_batch_size,
             cls_encoder.module.hidden_size if use_cuda else cls_encoder.hidden_size)
 
+        # Initialize losses
+        loss = 0
+
+        # Encode observed trajectory
+        for ei in range(input_length):
+            encoder_input = _input[:, ei, :]
+            encoder_hidden = encoder(encoder_input, encoder_hidden)
+    
         # Encode centerlines
         for ei in range(centerline_length):
             cls_encoder_input = cls[:, ei, :]
             cls_encoder_hidden = cls_encoder(cls_encoder_input, cls_encoder_hidden)
-        cls_encoder_hidden = cls_encoder_hidden[0]
 
-        # Reshape centerline tensor
-        cls = cls.reshape(_input.shape[0], -1, cls.shape[-2], cls.shape[-1])
+        if use_traj:
+            # Initialize decoder input with last coordinate in encoder
+            decoder_input = encoder_input[:, :2]
 
-        # Initialize losses
-        loss = 0
-        traj_loss = 0
-        prog_loss = 0 
+            # Initialize decoder hidden state as encoder hidden state
+            decoder_hidden = encoder_hidden
+            decoder_outputs = torch.zeros(target.shape).to(device)
+
+            # Decode hidden state in future trajectory
+            for di in range(rollout_len):
+                decoder_output, decoder_hidden = decoder(decoder_input,
+                                                        decoder_hidden)
+                decoder_outputs[:, di, :] = decoder_output
+
+                # Update loss
+                loss += criterion(decoder_output[:, :2], target[:, di, :2])
+
+                # Use own predictions as inputs at next step
+                decoder_input = decoder_output
+
+        # Split individual centerline hidden by the associated data point
+        # TODO: dot product between each centerline feature and traj feature, then softmax
+        prog_decoder_hidden = cls_encoder_hidden
+        prog_decoder_hidden = torch.split(prog_decoder_hidden[0], cls_num)
+        # Aggregate centerline features
+        prog_decoder_hidden = torch.stack(list(map(lambda x: torch.sum(x, dim=0), prog_decoder_hidden)))
+        # Modulate centerline features with trajectory features
+        prog_decoder_features = encoder_hidden[0] * prog_decoder_hidden
+
+        # Decode programs
+        prog_output = prog_decoder(prog_decoder_features)
+
+        centerline1 = programs[:, 0, 0].long()
+        centerline2 = programs[:, 1, 0].long()
+        centerline3 = programs[:, 2, 0].long()
+
+        timestep1 = programs[:, 0, 1].long()
+        timestep2 = programs[:, 1, 1].long()
+        timestep3 = programs[:, 2, 1].long()
+
+        velocity1 = programs[:, 0, 2].unsqueeze(1)
+        velocity2 = programs[:, 1, 2].unsqueeze(1)
+        velocity3 = programs[:, 2, 2].unsqueeze(1)
+
+        # Compute program loss
         ce_loss = nn.CrossEntropyLoss() 
         mse_loss = nn.MSELoss()
 
-        # Iteratively decode centerlines and compute losses
-        for t in range(programs.shape[1]):
-
-            # Encode observed trajectory
-            for ei in range(_input.shape[1]):
-                encoder_input = _input[:, ei, :]
-                encoder_hidden = encoder(encoder_input, encoder_hidden)
-
-            # Compute centerline cross-entropy loss
-            centerline_scores = torch.softmax(torch.matmul(encoder_hidden[0], cls_encoder_hidden.view(-1, cls_encoder_hidden.shape[-1]).transpose(1,0)), dim=1)
-            centerline_gt = programs[:, t, 0].long()
-            centerline_loss = ce_loss(centerline_scores, centerline_gt)
-
-            # Choose predicted centerline and its feature
-            centerline_pred_index = torch.argmax(centerline_scores, dim=1)
-            cls_encoder_hidden = cls_encoder_hidden.reshape(batch_size, -1, cls_encoder_hidden.shape[-1])
-            centerline_pred = cls[np.arange(batch_size), centerline_pred_index]
-            cls_encoder_hidden_pred = cls_encoder_hidden[np.arange(batch_size), centerline_pred_index]
-
-            # Decode timestep and velocity
-            prog_decoder_features = torch.cat([encoder_hidden[0], cls_encoder_hidden_pred], dim=1)
-            prog_output = prog_decoder(prog_decoder_features)
-            timestep_scores = prog_output[:, :-1]
-            timestep_pred = torch.argmax(timestep_scores, dim=1)
-            velocity_pred = prog_output[:, -1]
-
-            timestep_gt = programs[:, t, 1].long()
-            velocity_gt = programs[:, t, 2]
-            # print(timestep_gt, timestep_scores)
-            # Aggregate all losses
-            timestep_loss = ce_loss(timestep_scores, timestep_gt)
-            velocity_loss = mse_loss(velocity_pred, velocity_gt)
-            prog_loss += centerline_loss + timestep_loss + velocity_loss
-
-            # Decode programs into trajectories and treat them as new inputs
-            # TODO: can we batch-ify this step?
-
-            new_input = []
-            for i in range(_input.shape[0]):
-                new_input_i = exec_prog(_input[i].cpu().numpy(), centerline_pred[i].cpu().numpy(), timestep_pred[i].cpu().numpy(), velocity_pred[i].detach().cpu().numpy())
-                new_input_i = np.array(new_input_i)
-                new_input.append(new_input_i)
-            _input = torch.FloatTensor(new_input).to(device)
-
-            # Deal with the special case of timestep = 0
-            if len(_input.size()) == 2:
-                _input = _input.unsqueeze(0) 
-
-            # Decode trajectories if used for training
-            if use_traj and t == 0:
-                # Initialize decoder input with last coordinate in encoder
-                decoder_input = encoder_input[:, :2]
-
-                # Initialize decoder hidden state as encoder hidden state
-                decoder_hidden = encoder_hidden
-                decoder_outputs = torch.zeros(target.shape).to(device)
-
-                # Decode hidden state in future trajectory
-                for di in range(rollout_len):
-                    decoder_output, decoder_hidden = decoder(decoder_input,
-                                                            decoder_hidden)
-                    decoder_outputs[:, di, :] = decoder_output
-
-                    # Update loss
-                    traj_loss += criterion(decoder_output[:, :2], target[:, di, :2])
-
-                    # Use own predictions as inputs at next step
-                    decoder_input = decoder_output
+        # TODO: fix timestep loss 
+        centerline_loss = ce_loss(prog_output[:, :10], centerline1) + ce_loss(prog_output[:, 10:20], centerline2) + ce_loss(prog_output[:, 20:30], centerline3)
+        # timestep_loss = ce_loss(prog_output[:, 30:60], timestep1) + ce_loss(prog_output[:, 60:90], timestep2)
+        velocity_loss = mse_loss(prog_output[:, -3:-2], velocity1) + mse_loss(prog_output[:, -2:-1], velocity2) + mse_loss(prog_output[:, -1:], velocity3)
+        prog_loss = centerline_loss + velocity_loss
 
         if use_traj:
             loss = loss + prog_loss 
@@ -436,12 +413,12 @@ def train(
         # Backpropagate
         loss.backward()
 
-        encoder_optimizer.step()
-        cls_encoder_optimizer.step()
-        prog_decoder_optimizer.step()
         if use_traj:
+            encoder_optimizer.step()
             decoder_optimizer.step()
 
+        cls_encoder_optimizer.step()
+        prog_decoder_optimizer.step()
 
         if global_step % 1000 == 0:
 
@@ -504,15 +481,10 @@ def validate(
         # Pack all centerlines into one tensor
         for j in range(len(helpers)):
             cls_num.append(len(helpers[j][2])-cls_num[-1])
-            for k in range(10):
+            for k in range(len(helpers[j][2])):
                 # Downsample centerlines by 10
-                if k < len(helpers[j][2]):
-                    cl_current = torch.FloatTensor(helpers[j][2][k])[::10, :]
-                # pad 0-sequence to ensure that each datum has the same number of centerlines
-                else:
-                    cl_current = torch.zeros((16,2))
+                cl_current = torch.FloatTensor(helpers[j][2][k])[::10, :]
                 cls.append(cl_current)
-
         cls_num = cls_num[1:]
         cls = torch.nn.utils.rnn.pad_sequence(cls, batch_first=True)
 
@@ -527,18 +499,11 @@ def validate(
         target = target.to(device)
         programs = programs.to(device)
 
-        # Set to train mode
-        encoder.train()
-        cls_encoder.train()
-        decoder.train()
-        prog_decoder.train()
-
-        # Zero the gradients
-        if use_traj:
-            decoder_optimizer.zero_grad()
-        encoder_optimizer.zero_grad()
-        cls_encoder_optimizer.zero_grad()
-        prog_decoder_optimizer.zero_grad()
+        # Set to eval mode
+        encoder.eval()
+        cls_encoder.eval()
+        decoder.eval()
+        prog_decoder.eval() 
 
         # Encoder
         batch_size = _input.shape[0]
@@ -557,90 +522,71 @@ def validate(
             cls_batch_size,
             cls_encoder.module.hidden_size if use_cuda else cls_encoder.hidden_size)
 
+        # Initialize losses
+        loss = 0
+
+        # Encode observed trajectory
+        for ei in range(input_length):
+            encoder_input = _input[:, ei, :]
+            encoder_hidden = encoder(encoder_input, encoder_hidden)
+    
         # Encode centerlines
         for ei in range(centerline_length):
             cls_encoder_input = cls[:, ei, :]
             cls_encoder_hidden = cls_encoder(cls_encoder_input, cls_encoder_hidden)
-        cls_encoder_hidden = cls_encoder_hidden[0]
 
-        # Reshape centerline tensor
-        cls = cls.reshape(_input.shape[0], -1, cls.shape[-2], cls.shape[-1])
+        if use_traj:
+            # Initialize decoder input with last coordinate in encoder
+            decoder_input = encoder_input[:, :2]
 
-        # Initialize losses
-        loss = 0
-        traj_loss = 0
-        prog_loss = 0 
+            # Initialize decoder hidden state as encoder hidden state
+            decoder_hidden = encoder_hidden
+            decoder_outputs = torch.zeros(target.shape).to(device)
+
+            # Decode hidden state in future trajectory
+            for di in range(rollout_len):
+                decoder_output, decoder_hidden = decoder(decoder_input,
+                                                        decoder_hidden)
+                decoder_outputs[:, di, :] = decoder_output
+
+                # Update loss
+                loss += criterion(decoder_output[:, :2], target[:, di, :2])
+
+                # Use own predictions as inputs at next step
+                decoder_input = decoder_output
+
+        # Split individual centerline hidden by the associated data point
+        prog_decoder_hidden = cls_encoder_hidden
+        prog_decoder_hidden = torch.split(prog_decoder_hidden[0], cls_num)
+        # Aggregate centerline features
+        prog_decoder_hidden = torch.stack(list(map(lambda x: torch.sum(x, dim=0), prog_decoder_hidden)))
+        # Modulate centerline features with trajectory features
+        prog_decoder_features = encoder_hidden[0] * prog_decoder_hidden
+
+        # Decode programs
+        prog_output = prog_decoder(prog_decoder_features)
+
+        centerline1 = programs[:, 0, 0].long()
+        centerline2 = programs[:, 1, 0].long()
+        centerline3 = programs[:, 2, 0].long()
+
+        timestep1 = programs[:, 0, 1].long()
+        timestep2 = programs[:, 1, 1].long()
+        timestep3 = programs[:, 2, 1].long()
+
+        velocity1 = programs[:, 0, 2].unsqueeze(1)
+        velocity2 = programs[:, 1, 2].unsqueeze(1)
+        velocity3 = programs[:, 2, 2].unsqueeze(1)
+
+        # Compute program loss
         ce_loss = nn.CrossEntropyLoss() 
         mse_loss = nn.MSELoss()
 
-        # Iteratively decode centerlines and compute losses
-        for t in range(programs.shape[1]):
-
-            # Encode observed trajectory
-            for ei in range(_input.shape[1]):
-                encoder_input = _input[:, ei, :]
-                encoder_hidden = encoder(encoder_input, encoder_hidden)
-
-            # Compute centerline cross-entropy loss
-            centerline_scores = torch.softmax(torch.matmul(encoder_hidden[0], cls_encoder_hidden.view(-1, cls_encoder_hidden.shape[-1]).transpose(1,0)), dim=1)
-            centerline_gt = programs[:, t, 0].long()
-            centerline_loss = ce_loss(centerline_scores, centerline_gt)
-
-            # Choose predicted centerline and its feature
-            centerline_pred_index = torch.argmax(centerline_scores, dim=1)
-            cls_encoder_hidden = cls_encoder_hidden.reshape(batch_size, -1, cls_encoder_hidden.shape[-1])
-            centerline_pred = cls[np.arange(batch_size), centerline_pred_index]
-            cls_encoder_hidden_pred = cls_encoder_hidden[np.arange(batch_size), centerline_pred_index]
-
-            # Decode timestep and velocity
-            prog_decoder_features = torch.cat([encoder_hidden[0], cls_encoder_hidden_pred], dim=1)
-            prog_output = prog_decoder(prog_decoder_features)
-            timestep_scores = prog_output[:, :-1]
-            timestep_pred = torch.argmax(timestep_scores, dim=1)
-            velocity_pred = prog_output[:, -1]
-
-            timestep_gt = programs[:, t, 1].long()
-            velocity_gt = programs[:, t, 2]
-            # print(timestep_gt, timestep_scores)
-            # Aggregate all losses
-            timestep_loss = ce_loss(timestep_scores, timestep_gt)
-            velocity_loss = mse_loss(velocity_pred, velocity_gt)
-            prog_loss += centerline_loss + timestep_loss + velocity_loss
-
-            # Decode programs into trajectories and treat them as new inputs
-            # TODO: can we batch-ify this step?
-
-            new_input = []
-            for i in range(_input.shape[0]):
-                new_input_i = exec_prog(_input[i].cpu().numpy(), centerline_pred[i].cpu().numpy(), timestep_pred[i].cpu().numpy(), velocity_pred[i].detach().cpu().numpy())
-                new_input_i = np.array(new_input_i)
-                new_input.append(new_input_i)
-            _input = torch.FloatTensor(new_input).to(device)
-            
-            # Deal with the special case of timestep = 0
-            if len(_input.size()) == 2:
-                _input = _input.unsqueeze(0) 
-
-            # Decode trajectories if used for training
-            if use_traj and t == 0:
-                # Initialize decoder input with last coordinate in encoder
-                decoder_input = encoder_input[:, :2]
-
-                # Initialize decoder hidden state as encoder hidden state
-                decoder_hidden = encoder_hidden
-                decoder_outputs = torch.zeros(target.shape).to(device)
-
-                # Decode hidden state in future trajectory
-                for di in range(rollout_len):
-                    decoder_output, decoder_hidden = decoder(decoder_input,
-                                                            decoder_hidden)
-                    decoder_outputs[:, di, :] = decoder_output
-
-                    # Update loss
-                    traj_loss += criterion(decoder_output[:, :2], target[:, di, :2])
-
-                    # Use own predictions as inputs at next step
-                    decoder_input = decoder_output
+        # TODO: fix timestep loss 
+        centerline_loss = ce_loss(prog_output[:, :10], centerline1) + ce_loss(prog_output[:, 10:20], centerline2) + ce_loss(prog_output[:, 20:30], centerline3)
+        # timestep_loss = ce_loss(prog_output[:, 30:60], timestep1) + ce_loss(prog_output[:, 60:90], timestep2)
+        velocity_loss = mse_loss(prog_output[:, -3:-2], velocity1) + mse_loss(prog_output[:, -2:-1], velocity2) + mse_loss(prog_output[:, -1:], velocity3)
+        prog_loss = centerline_loss + velocity_loss
 
         if use_traj:
             loss = loss + prog_loss 
@@ -994,8 +940,7 @@ def main():
         input_size=len(baseline_utils.BASELINE_INPUT_FEATURES[baseline_key]))
     cls_encoder = EncoderRNN(input_size=2)
     decoder = DecoderRNN(output_size=2)
-    # TODO: remove hardcoding of input and output sizes
-    prog_decoder = ProgDecoder(input_size=32, hidden_size=128, output_size=32)
+    prog_decoder = ProgDecoder(input_size=16, hidden_size=128, output_size=30+15+15+3)
     if use_cuda:
         encoder = nn.DataParallel(encoder)
         cls_encoder = nn.DataParallel(cls_encoder)
