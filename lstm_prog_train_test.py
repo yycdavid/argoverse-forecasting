@@ -27,6 +27,8 @@ from termcolor import cprint
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from tqdm import tqdm 
+import wandb 
 
 from logger import Logger
 import utils.baseline_config as config
@@ -82,19 +84,19 @@ def parse_arguments() -> Any:
     )
     parser.add_argument(
         "--train_features",
-        default="forecasting_features_train.pkl",
+        default="Traj/forecasting_features_train.pkl",
         type=str,
         help="path to the file which has train features.",
     )
     parser.add_argument(
         "--val_features",
-        default="forecasting_features_val.pkl",
+        default="Traj/forecasting_features_val.pkl",
         type=str,
         help="path to the file which has val features.",
     )
     parser.add_argument(
         "--test_features",
-        default="forecasting_features_test.pkl",
+        default="Traj/forecasting_features_test.pkl",
         type=str,
         help="path to the file which has test features.",
     )
@@ -104,6 +106,9 @@ def parse_arguments() -> Any:
         type=int,
         help="Batch size for parallel computation",
     )
+    parser.add_argument("--wandb",
+                    action="store_true",
+                    help="Use wandb for logging")
     parser.add_argument("--use_map",
                         action="store_true",
                         help="Use the map based features")
@@ -279,7 +284,7 @@ def train(
     args = parse_arguments()
     global global_step
 
-    for i, (_input, target, helpers) in enumerate(train_loader):
+    for _, (_input, target, helpers) in enumerate(train_loader):
 
         cls = []
         cls_num = [0]
@@ -384,7 +389,7 @@ def train(
 
             timestep_gt = programs[:, t, 1].long()
             velocity_gt = programs[:, t, 2]
-            # print(timestep_gt, timestep_scores)
+
             # Aggregate all losses
             timestep_loss = ce_loss(timestep_scores, timestep_gt)
             velocity_loss = mse_loss(velocity_pred, velocity_gt)
@@ -452,6 +457,8 @@ def train(
             logger.scalar_summary(tag="Train/loss",
                                   value=loss.item(),
                                   step=epoch)
+            if args.wandb:
+                wandb.log({'Train/loss': loss.item()}, step=epoch)
 
         global_step += 1
 
@@ -496,7 +503,7 @@ def validate(
     global best_loss
     total_loss = []
 
-    for i, (_input, target, helpers) in enumerate(val_loader):
+    for _, (_input, target, helpers) in enumerate(val_loader):
 
         cls = []
         cls_num = [0]
@@ -607,6 +614,7 @@ def validate(
             velocity_loss = mse_loss(velocity_pred, velocity_gt)
             prog_loss += centerline_loss + timestep_loss + velocity_loss
 
+            print("centerline loss: {centerline_loss}, timestep_loss: {timestep_loss}, velocity_loss: {velocity_loss}")
             # Decode programs into trajectories and treat them as new inputs
             # TODO: can we batch-ify this step?
 
@@ -652,8 +660,7 @@ def validate(
         total_loss.append(loss)
 
         if i % 10 == 0:
-
-            cprint(
+            print(
                 f"Val -- Epoch:{epoch}, loss:{loss}, Rollout: {rollout_len}",
                 color="green",
             )
@@ -663,12 +670,7 @@ def validate(
 
     if val_loss <= best_loss:
         best_loss = val_loss
-        if args.use_map:
-            save_dir = "saved_models/lstm_prog_map"
-        elif args.use_social:
-            save_dir = "saved_models/lstm_prog_social"
-        else:
-            save_dir = "saved_models/lstm_prog"
+        save_dir = "saved_models/lstm_prog"
 
         os.makedirs(save_dir, exist_ok=True)
         model_utils.save_checkpoint(
@@ -689,7 +691,8 @@ def validate(
         )
 
     logger.scalar_summary(tag="Val/loss", value=val_loss.item(), step=epoch)
-
+    if args.wandb:
+        wandb.log({'Val/loss': val_loss.item()}, step=epoch)
     # Keep track of the loss to change preiction horizon
     if val_loss <= prev_loss:
         decrement_counter = 0
@@ -699,105 +702,17 @@ def validate(
     return val_loss, decrement_counter
 
 
-def infer_absolute(
+def infer_program(
+        prep_data: Any, 
         test_loader: torch.utils.data.DataLoader,
         encoder: EncoderRNN,
+        cls_encoder: Any, 
         decoder: DecoderRNN,
-        start_idx: int,
+        prog_decoder: Any, 
         forecasted_save_dir: str,
         model_utils: ModelUtils,
 ):
-    """Infer function for non-map LSTM baselines and save the forecasted trajectories.
-
-    Args:
-        test_loader: DataLoader for the test set
-        encoder: Encoder network instance
-        decoder: Decoder network instance
-        start_idx: start index for the current joblib batch
-        forecasted_save_dir: Directory where forecasted trajectories are to be saved
-        model_utils: ModelUtils instance
-
-    """
-    args = parse_arguments()
-    forecasted_trajectories = {}
-
-    for i, (_input, target, helpers) in enumerate(test_loader):
-
-        _input = _input.to(device)
-
-        batch_helpers = list(zip(*helpers))
-
-        helpers_dict = {}
-        for k, v in config.LSTM_HELPER_DICT_IDX.items():
-            helpers_dict[k] = batch_helpers[v]
-
-        # Set to eval mode
-        encoder.eval()
-        decoder.eval()
-
-        # Encoder
-        batch_size = _input.shape[0]
-        input_length = _input.shape[1]
-        input_shape = _input.shape[2]
-
-        # Initialize encoder hidden state
-        encoder_hidden = model_utils.init_hidden(
-            batch_size,
-            encoder.module.hidden_size if use_cuda else encoder.hidden_size)
-
-        # Encode observed trajectory
-        for ei in range(input_length):
-            encoder_input = _input[:, ei, :]
-            encoder_hidden = encoder(encoder_input, encoder_hidden)
-
-        # Initialize decoder input with last coordinate in encoder
-        decoder_input = encoder_input[:, :2]
-
-        # Initialize decoder hidden state as encoder hidden state
-        decoder_hidden = encoder_hidden
-
-        decoder_outputs = torch.zeros(
-            (batch_size, args.pred_len, 2)).to(device)
-
-        # Decode hidden state in future trajectory
-        for di in range(args.pred_len):
-            decoder_output, decoder_hidden = decoder(decoder_input,
-                                                     decoder_hidden)
-            decoder_outputs[:, di, :] = decoder_output
-
-            # Use own predictions as inputs at next step
-            decoder_input = decoder_output
-
-        # Get absolute trajectory
-        abs_helpers = {}
-        abs_helpers["REFERENCE"] = np.array(helpers_dict["DELTA_REFERENCE"])
-        abs_helpers["TRANSLATION"] = np.array(helpers_dict["TRANSLATION"])
-        abs_helpers["ROTATION"] = np.array(helpers_dict["ROTATION"])
-        abs_inputs, abs_outputs = baseline_utils.get_abs_traj(
-            _input.clone().cpu().numpy(),
-            decoder_outputs.detach().clone().cpu().numpy(),
-            args,
-            abs_helpers,
-        )
-
-        for i in range(abs_outputs.shape[0]):
-            seq_id = int(helpers_dict["SEQ_PATHS"][i])
-            forecasted_trajectories[seq_id] = [abs_outputs[i]]
-
-    with open(os.path.join(forecasted_save_dir, f"{start_idx}.pkl"),
-              "wb") as f:
-        pkl.dump(forecasted_trajectories, f)
-
-        
-def infer_map(
-        test_loader: torch.utils.data.DataLoader,
-        encoder: EncoderRNN,
-        decoder: DecoderRNN,
-        start_idx: int,
-        forecasted_save_dir: str,
-        model_utils: ModelUtils,
-):
-    """Infer function for map-based LSTM baselines and save the forecasted trajectories.
+    """Infer function for program-based LSTM baselines.
 
     Args:
         test_loader: DataLoader for the test set
@@ -811,7 +726,28 @@ def infer_map(
     args = parse_arguments()
     global best_loss
     forecasted_trajectories = {}
-    for i, (_input, target, helpers) in enumerate(test_loader):
+    forecasted_programs = [[] for i in range(len(test_loader.dataset))]
+
+    batch_id = 0
+    for _, (_input, target, helpers) in tqdm(enumerate(test_loader)):
+
+        cls = []
+        cls_num = [0]
+
+        # Pack all centerlines into one tensor
+        for j in range(len(helpers)):
+            cls_num.append(len(helpers[j][2])-cls_num[-1])
+            for k in range(10):
+                # Downsample centerlines by 10
+                if k < len(helpers[j][2]):
+                    cl_current = torch.FloatTensor(helpers[j][2][k])[::10, :]
+                # pad 0-sequence to ensure that each datum has the same number of centerlines
+                else:
+                    cl_current = torch.zeros((16,2))
+                cls.append(cl_current)
+
+        cls_num = cls_num[1:]
+        cls = torch.nn.utils.rnn.pad_sequence(cls, batch_first=True)
 
         _input = _input.to(device)
 
@@ -823,89 +759,87 @@ def infer_map(
 
         # Set to eval mode
         encoder.eval()
+        cls_encoder.eval()
         decoder.eval()
+        prog_decoder.eval()
 
         # Encoder
         batch_size = _input.shape[0]
+        cls_batch_size = cls.shape[0]
         input_length = _input.shape[1]
+        centerline_length = cls.shape[1]
+        output_length = target.shape[1]
+        input_shape = _input.shape[2]
 
-        # Iterate over every element in the batch
-        for batch_idx in range(batch_size):
-            num_candidates = len(
-                helpers_dict["CANDIDATE_CENTERLINES"][batch_idx])
-            curr_centroids = helpers_dict["CENTROIDS"][batch_idx]
-            seq_id = int(helpers_dict["SEQ_PATHS"][batch_idx])
-            abs_outputs = []
+        # Initialize encoder hidden state
+        encoder_hidden = model_utils.init_hidden(
+            batch_size,
+            encoder.module.hidden_size if use_cuda else encoder.hidden_size)
 
-            # Predict using every centerline candidate for the current trajectory
-            for candidate_idx in range(num_candidates):
-                curr_centerline = helpers_dict["CANDIDATE_CENTERLINES"][
-                    batch_idx][candidate_idx]
-                curr_nt_dist = helpers_dict["CANDIDATE_NT_DISTANCES"][
-                    batch_idx][candidate_idx]
+        cls_encoder_hidden = model_utils.init_hidden(
+            cls_batch_size,
+            cls_encoder.module.hidden_size if use_cuda else cls_encoder.hidden_size)
 
-                _input = torch.FloatTensor(
-                    np.expand_dims(curr_nt_dist[:args.obs_len].astype(float),
-                                   0)).to(device)
+        # Encode centerlines
+        for ei in range(centerline_length):
+            cls_encoder_input = cls[:, ei, :]
+            cls_encoder_hidden = cls_encoder(cls_encoder_input, cls_encoder_hidden)
+        cls_encoder_hidden = cls_encoder_hidden[0]
 
-                # Initialize encoder hidden state
-                encoder_hidden = model_utils.init_hidden(
-                    1, encoder.module.hidden_size
-                    if use_cuda else encoder.hidden_size)
+        # Reshape centerline tensor
+        cls = cls.reshape(_input.shape[0], -1, cls.shape[-2], cls.shape[-1])
 
-                # Encode observed trajectory
-                for ei in range(input_length):
-                    encoder_input = _input[:, ei, :]
-                    encoder_hidden = encoder(encoder_input, encoder_hidden)
+        for t in range(3):
+            # Encode observed trajectory
+            for ei in range(_input.shape[1]):
+                encoder_input = _input[:, ei, :]
+                encoder_hidden = encoder(encoder_input, encoder_hidden)
 
-                # Initialize decoder input with last coordinate in encoder
-                decoder_input = encoder_input[:, :2]
+            # Compute centerline cross-entropy loss
+            centerline_scores = torch.softmax(torch.matmul(encoder_hidden[0], cls_encoder_hidden.view(-1, cls_encoder_hidden.shape[-1]).transpose(1,0)), dim=1)
 
-                # Initialize decoder hidden state as encoder hidden state
-                decoder_hidden = encoder_hidden
+            # Choose predicted centerline and its feature
+            centerline_pred_index = torch.argmax(centerline_scores, dim=1)
+            cls_encoder_hidden = cls_encoder_hidden.reshape(batch_size, -1, cls_encoder_hidden.shape[-1])
+            centerline_pred = cls[np.arange(batch_size), centerline_pred_index]
+            cls_encoder_hidden_pred = cls_encoder_hidden[np.arange(batch_size), centerline_pred_index]
 
-                decoder_outputs = torch.zeros((1, args.pred_len, 2)).to(device)
+            # Decode timestep and velocity
+            prog_decoder_features = torch.cat([encoder_hidden[0], cls_encoder_hidden_pred], dim=1)
+            prog_output = prog_decoder(prog_decoder_features)
+            timestep_scores = prog_output[:, :-1]
+            timestep_pred = torch.argmax(timestep_scores, dim=1)
+            velocity_pred = prog_output[:, -1]
 
-                # Decode hidden state in future trajectory
-                for di in range(args.pred_len):
-                    decoder_output, decoder_hidden = decoder(
-                        decoder_input, decoder_hidden)
-                    decoder_outputs[:, di, :] = decoder_output
+            # Decode programs into trajectories and treat them as new inputs
+            # TODO: can we batch-ify this step?
+            new_input = []
+            for i in range(_input.shape[0]):
+                new_input_i = exec_prog(_input[i].cpu().numpy(), centerline_pred[i].cpu().numpy(), timestep_pred[i].cpu().numpy(), velocity_pred[i].detach().cpu().numpy())
+                new_input_i = np.array(new_input_i)
+                new_input.append(new_input_i)
+                forecasted_programs[batch_id * batch_size + i].append((centerline_pred[i].cpu().numpy(), timestep_pred[i].cpu().numpy(), velocity_pred[i].detach().cpu().numpy()))
+            _input = torch.FloatTensor(new_input).to(device)
+            
+            # Deal with the special case of timestep = 0
+            if len(_input.size()) == 2:
+                _input = _input.unsqueeze(0) 
+        batch_id += 1
 
-                    # Use own predictions as inputs at next step
-                    decoder_input = decoder_output
-
-                # Get absolute trajectory
-                abs_helpers = {}
-                abs_helpers["REFERENCE"] = np.expand_dims(
-                    np.array(helpers_dict["CANDIDATE_DELTA_REFERENCES"]
-                             [batch_idx][candidate_idx]),
-                    0,
-                )
-                abs_helpers["CENTERLINE"] = np.expand_dims(curr_centerline, 0)
-
-                abs_input, abs_output = baseline_utils.get_abs_traj(
-                    _input.clone().cpu().numpy(),
-                    decoder_outputs.detach().clone().cpu().numpy(),
-                    args,
-                    abs_helpers,
-                )
-
-                # array of shape (1,30,2) to list of (30,2)
-                abs_outputs.append(abs_output[0])
-            forecasted_trajectories[seq_id] = abs_outputs
-
+    prep_data['PROG'] = forecasted_programs
     os.makedirs(forecasted_save_dir, exist_ok=True)
-    with open(os.path.join(forecasted_save_dir, f"{start_idx}.pkl"),
+    with open(os.path.join(forecasted_save_dir, f"test_prep.pkl"),
               "wb") as f:
         pkl.dump(forecasted_trajectories, f)
 
 
 def infer_helper(
-        curr_data_dict: Dict[str, Any],
-        start_idx: int,
+        test_prep: Any,
+        test_loader: Any, 
         encoder: EncoderRNN,
+        cls_encoder: Any, 
         decoder: DecoderRNN,
+        prog_decoder: Any, 
         model_utils: ModelUtils,
         forecasted_save_dir: str,
 ):
@@ -921,38 +855,17 @@ def infer_helper(
 
     """
     args = parse_arguments()
-    curr_test_dataset = LSTMDataset(curr_data_dict, args, "test")
-    curr_test_loader = torch.utils.data.DataLoader(
-        curr_test_dataset,
-        shuffle=False,
-        batch_size=args.test_batch_size,
-        collate_fn=model_utils.my_collate_fn,
+
+    infer_program(
+        test_prep, 
+        test_loader,
+        encoder,
+        cls_encoder, 
+        decoder,
+        prog_decoder, 
+        forecasted_save_dir,
+        model_utils,
     )
-
-    if args.use_map:
-        print(f"#### LSTM+map inference at index {start_idx} ####")
-        infer_map(
-            curr_test_loader,
-            encoder,
-            decoder,
-            start_idx,
-            forecasted_save_dir,
-            model_utils,
-        )
-
-    else:
-        print(f"#### LSTM+social inference at {start_idx} ####"
-              ) if args.use_social else print(
-                  f"#### LSTM inference at {start_idx} ####")
-        infer_absolute(
-            curr_test_loader,
-            encoder,
-            decoder,
-            start_idx,
-            forecasted_save_dir,
-            model_utils,
-        )
-
 
 def main():
     """Main."""
@@ -982,11 +895,20 @@ def main():
     data_dict = baseline_utils.get_data(args, baseline_key)
 
     # add the program data to the data_dict
-    new_data = pd.read_pickle('train_prep_para.pkl')
-    data_dict['train_helpers'].CANDIDATE_CENTERLINES = new_data.CANDIDATE_CENTERLINES
-    data_dict['train_helpers']['PROG'] = new_data.PROG
-    data_dict['val_helpers'].CANDIDATE_CENTERLINES = new_data.CANDIDATE_CENTERLINES
-    data_dict['val_helpers']['PROG'] = new_data.PROG 
+    new_data_train = pd.read_pickle('Traj/train_prep.pkl')
+    new_data_val = pd.read_pickle('Traj/val_prep.pkl')
+    test_prep = pd.read_pickle('Traj/val_prep.pkl')
+    # new_data = pd.read_pickle('train_prep_para.pkl')
+    # test_prep = pd.read_pickle('train_prep_para.pkl')
+
+    # from ipdb import set_trace 
+    # set_trace() 
+    data_dict['train_helpers'].CANDIDATE_CENTERLINES = new_data_train.CANDIDATE_CENTERLINES
+    data_dict['train_helpers']['PROG'] = new_data_train.PROG
+    data_dict['val_helpers'].CANDIDATE_CENTERLINES = new_data_val.CANDIDATE_CENTERLINES
+    data_dict['val_helpers']['PROG'] = new_data_val.PROG 
+    data_dict['test_helpers'].CANDIDATE_CENTERLINES = new_data_val.CANDIDATE_CENTERLINES
+    data_dict['test_helpers']['PROG'] = new_data_val.PROG 
 
     # Get model
     criterion = nn.MSELoss()
@@ -1024,11 +946,14 @@ def main():
         start_rollout_idx = 0
 
     if not args.test:
-
+        if args.wandb:
+            wandb.init(project='traj',
+                        group='lstm-prog',
+                        config=args)
         # Tensorboard logger
         log_dir = os.path.join(os.getcwd(), "lstm_logs", baseline_key)
 
-        # Get PyTorch Dataset
+        # Get PyTorch Dataset and Dataloader
         val_dataset = LSTMDataset(data_dict, args, "val")
         val_loader = torch.utils.data.DataLoader(
             val_dataset,
@@ -1039,8 +964,6 @@ def main():
         )
 
         train_dataset = LSTMDataset(data_dict, args, "train")
-
-        # Setting Dataloaders
         train_loader = torch.utils.data.DataLoader(
             train_dataset,
             batch_size=args.train_batch_size,
@@ -1048,8 +971,6 @@ def main():
             drop_last=False,
             collate_fn=model_utils.my_collate_fn,
         )
-
-
 
         print("Training begins ...")
 
@@ -1119,27 +1040,38 @@ def main():
                         break
 
     else:
-
         start_time = time.time()
-
         temp_save_dir = tempfile.mkdtemp()
 
         test_size = data_dict["test_input"].shape[0]
         test_data_subsets = baseline_utils.get_test_data_dict_subset(
             data_dict, args)
 
-        # test_batch_size should be lesser than joblib_batch_size
-        Parallel(n_jobs=-2, verbose=2)(
-            delayed(infer_helper)(test_data_subsets[i], i, encoder, decoder,
-                                  model_utils, temp_save_dir)
-            for i in range(0, test_size, args.joblib_batch_size))
+        # Get PyTorch Dataset and Dataloader
+        test_dataset = LSTMDataset(data_dict, args, "val")
+        # test_dataset = LSTMDataset(data_dict, args, "test")
+        test_loader = torch.utils.data.DataLoader(
+            test_dataset,
+            batch_size=args.val_batch_size,
+            drop_last=False,
+            shuffle=False,
+            collate_fn=model_utils.my_collate_fn,
+        )
 
-        baseline_utils.merge_saved_traj(temp_save_dir, args.traj_save_path)
-        shutil.rmtree(temp_save_dir)
+        infer_helper(test_prep, test_loader, encoder, cls_encoder, decoder, prog_decoder,
+        model_utils, 'Traj')
+        # test_batch_size should be lesser than joblib_batch_size
+        # Parallel(n_jobs=-2, verbose=2)(
+        #     delayed(infer_helper)(test_data_subsets[i], i, encoder, decoder,
+        #                           model_utils, temp_save_dir)
+        #     for i in range(0, test_size, args.joblib_batch_size))
+
+        # baseline_utils.merge_saved_traj(temp_save_dir, args.traj_save_path)
+        # shutil.rmtree(temp_save_dir)
 
         end = time.time()
         print(f"Test completed in {(end - start_time) / 60.0} mins")
-        print(f"Forecasted Trajectories saved at {args.traj_save_path}")
+        # print(f"Forecasted Trajectories saved at {args.traj_save_path}")
 
 
 if __name__ == "__main__":
