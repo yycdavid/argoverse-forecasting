@@ -1,1 +1,0 @@
-{"Train/loss": 5.860960006713867, "Train/centerline_loss": 2.2915589809417725, "Train/velocity_loss": 0.22739416360855103, "Train/timestep_loss": 3.3420069217681885, "_step": 98, "_runtime": 13875, "_timestamp": 1626729397, "Val/loss": 5.9782538414001465, "Val/centerline_loss": 2.2759478092193604, "Val/velocity_loss": 0.3178197741508484, "Val/timestep_loss": 3.384486436843872}
