@@ -1,4 +1,7 @@
 Traj
 .vscode
 **/__pycache__
+__pycache__ 
+lstm_logs
+saved_models
 wandb
