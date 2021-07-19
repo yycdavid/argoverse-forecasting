@@ -1,0 +1,1431 @@
+Training begins ...
+2021-07-18 16:20:07.401896: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcuda.so.1
+2021-07-18 16:20:07.402856: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1716] Found device 0 with properties: 
+pciBusID: 0000:86:00.0 name: GeForce RTX 2080 Ti computeCapability: 7.5
+coreClock: 1.545GHz coreCount: 68 deviceMemorySize: 10.76GiB deviceMemoryBandwidth: 573.69GiB/s
+2021-07-18 16:20:07.403037: W tensorflow/stream_executor/platform/default/dso_loader.cc:59] Could not load dynamic library 'libcudart.so.10.1'; dlerror: libcudart.so.10.1: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: :/home/jasonyma/.mujoco/mujoco200/bin:/home/jasonyma/.mujoco/mujoco200/bin
+2021-07-18 16:20:07.405694: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcublas.so.10
+2021-07-18 16:20:07.408115: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcufft.so.10
+2021-07-18 16:20:07.408473: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcurand.so.10
+2021-07-18 16:20:07.411374: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcusolver.so.10
+2021-07-18 16:20:07.413119: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcusparse.so.10
+2021-07-18 16:20:07.413280: W tensorflow/stream_executor/platform/default/dso_loader.cc:59] Could not load dynamic library 'libcudnn.so.7'; dlerror: libcudnn.so.7: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: :/home/jasonyma/.mujoco/mujoco200/bin:/home/jasonyma/.mujoco/mujoco200/bin
+2021-07-18 16:20:07.413288: W tensorflow/core/common_runtime/gpu/gpu_device.cc:1753] Cannot dlopen some GPU libraries. Please make sure the missing libraries mentioned above are installed properly if you would like to use GPU. Follow the guide at https://www.tensorflow.org/install/gpu for how to download and setup the required libraries for your platform.
+Skipping registering GPU devices...
+2021-07-18 16:20:07.413924: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2021-07-18 16:20:07.459503: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2400000000 Hz
+2021-07-18 16:20:07.467311: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x5655a63a0f30 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2021-07-18 16:20:07.467335: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+2021-07-18 16:20:07.467524: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1257] Device interconnect StreamExecutor with strength 1 edge matrix:
+2021-07-18 16:20:07.467532: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1263]      
+Train -- Epoch:0, loss:6.787459373474121, Rollout:30
+Training epoch completed in 1.2631096760431926 mins, Total time: 1.2644758502642313 mins
+Training epoch completed in 1.2582953810691833 mins, Total time: 2.5227734168370564 mins
+Train -- Epoch:2, loss:5.693637371063232, Rollout:30
+Training epoch completed in 1.2953113039334616 mins, Total time: 3.8180859009424846 mins
+Training epoch completed in 1.3035699089368185 mins, Total time: 5.121657538414001 mins
+Train -- Epoch:4, loss:5.7178826332092285, Rollout:30
+Training epoch completed in 1.199182403087616 mins, Total time: 6.320844193299611 mins
+[32mVal -- Epoch:5, loss:5.67604923248291, Rollout: 1[0m
+[32mVal -- Epoch:5, loss:5.704412937164307, Rollout: 1[0m
+[32mVal -- Epoch:5, loss:5.740275859832764, Rollout: 1[0m
+[32mVal -- Epoch:5, loss:5.718631744384766, Rollout: 1[0m
+[32mVal -- Epoch:5, loss:5.826814651489258, Rollout: 1[0m
+[32mVal -- Epoch:5, loss:5.679315090179443, Rollout: 1[0m
+[32mVal -- Epoch:5, loss:5.720513343811035, Rollout: 1[0m
+[32mVal -- Epoch:5, loss:5.700397491455078, Rollout: 1[0m
+Validation completed in 0.18581518332163494 mins, Total time: 6.5066601673762 mins
+Training epoch completed in 1.2424489418665567 mins, Total time: 7.749110166231791 mins
+Training epoch completed in 1.3118271629015605 mins, Total time: 9.060938890775045 mins
+Train -- Epoch:7, loss:5.685615539550781, Rollout:30
+Training epoch completed in 1.214503029982249 mins, Total time: 10.275443951288858 mins
+Training epoch completed in 1.1989577968915304 mins, Total time: 11.474402836958568 mins
+Train -- Epoch:9, loss:5.6396164894104, Rollout:30
+Training epoch completed in 1.1583595434824625 mins, Total time: 12.63276421626409 mins
+[32mVal -- Epoch:10, loss:5.6714582443237305, Rollout: 1[0m
+[32mVal -- Epoch:10, loss:5.689457416534424, Rollout: 1[0m
+[32mVal -- Epoch:10, loss:5.731021404266357, Rollout: 1[0m
+[32mVal -- Epoch:10, loss:5.69859504699707, Rollout: 1[0m
+[32mVal -- Epoch:10, loss:5.816410541534424, Rollout: 1[0m
+[32mVal -- Epoch:10, loss:5.663080215454102, Rollout: 1[0m
+[32mVal -- Epoch:10, loss:5.718235969543457, Rollout: 1[0m
+[32mVal -- Epoch:10, loss:5.683176040649414, Rollout: 1[0m
+Validation completed in 0.20190606514612833 mins, Total time: 12.834671131769817 mins
+Training epoch completed in 1.28390953540802 mins, Total time: 14.118581406275432 mins
+Training epoch completed in 1.156349817911784 mins, Total time: 15.274933167298634 mins
+Train -- Epoch:12, loss:5.713109970092773, Rollout:30
+Training epoch completed in 1.2204126238822937 mins, Total time: 16.49534757932027 mins
+Training epoch completed in 1.187737472852071 mins, Total time: 17.68308684428533 mins
+Train -- Epoch:14, loss:5.6198625564575195, Rollout:30
+Training epoch completed in 1.3093331098556518 mins, Total time: 18.992420959472657 mins
+[32mVal -- Epoch:15, loss:5.663418769836426, Rollout: 1[0m
+[32mVal -- Epoch:15, loss:5.6753997802734375, Rollout: 1[0m
+[32mVal -- Epoch:15, loss:5.713349342346191, Rollout: 1[0m
+[32mVal -- Epoch:15, loss:5.687765121459961, Rollout: 1[0m
+[32mVal -- Epoch:15, loss:5.8043012619018555, Rollout: 1[0m
+[32mVal -- Epoch:15, loss:5.658527374267578, Rollout: 1[0m
+[32mVal -- Epoch:15, loss:5.7171711921691895, Rollout: 1[0m
+[32mVal -- Epoch:15, loss:5.678556442260742, Rollout: 1[0m
+Validation completed in 0.23498207728068035 mins, Total time: 19.22740393082301 mins
+Training epoch completed in 1.2473020792007445 mins, Total time: 20.474706896146138 mins
+Training epoch completed in 1.245310413837433 mins, Total time: 21.72001839876175 mins
+Train -- Epoch:17, loss:5.648812770843506, Rollout:30
+Training epoch completed in 1.287911887963613 mins, Total time: 23.0079313993454 mins
+Training epoch completed in 1.4745984196662902 mins, Total time: 24.48253172238668 mins
+Train -- Epoch:19, loss:5.7105512619018555, Rollout:30
+Training epoch completed in 1.2163853923479715 mins, Total time: 25.698918215433757 mins
+[32mVal -- Epoch:20, loss:5.666378498077393, Rollout: 1[0m
+[32mVal -- Epoch:20, loss:5.676364421844482, Rollout: 1[0m
+[32mVal -- Epoch:20, loss:5.71798849105835, Rollout: 1[0m
+[32mVal -- Epoch:20, loss:5.682526111602783, Rollout: 1[0m
+[32mVal -- Epoch:20, loss:5.7955780029296875, Rollout: 1[0m
+[32mVal -- Epoch:20, loss:5.656556606292725, Rollout: 1[0m
+[32mVal -- Epoch:20, loss:5.716028213500977, Rollout: 1[0m
+[32mVal -- Epoch:20, loss:5.672332763671875, Rollout: 1[0m
+Validation completed in 0.20020768642425538 mins, Total time: 25.89912672837575 mins
+Training epoch completed in 1.2395562609036763 mins, Total time: 27.138684141635895 mins
+Training epoch completed in 1.3051548639933268 mins, Total time: 28.44384198586146 mins
+Train -- Epoch:22, loss:5.676454067230225, Rollout:30
+Training epoch completed in 1.241529893875122 mins, Total time: 29.685373711586 mins
+Training epoch completed in 1.341902216275533 mins, Total time: 31.027277787526447 mins
+Train -- Epoch:24, loss:5.638003349304199, Rollout:30
+Training epoch completed in 1.200412913163503 mins, Total time: 32.227691821257274 mins
+[32mVal -- Epoch:25, loss:5.661946773529053, Rollout: 1[0m
+[32mVal -- Epoch:25, loss:5.671734809875488, Rollout: 1[0m
+[32mVal -- Epoch:25, loss:5.727996826171875, Rollout: 1[0m
+[32mVal -- Epoch:25, loss:5.682778835296631, Rollout: 1[0m
+[32mVal -- Epoch:25, loss:5.784225940704346, Rollout: 1[0m
+[32mVal -- Epoch:25, loss:5.651804447174072, Rollout: 1[0m
+[32mVal -- Epoch:25, loss:5.725045680999756, Rollout: 1[0m
+[32mVal -- Epoch:25, loss:5.668084621429443, Rollout: 1[0m
+Validation completed in 0.2070773720741272 mins, Total time: 32.434770766894026 mins
+Training epoch completed in 1.2424278656641643 mins, Total time: 33.67720057169596 mins
+Training epoch completed in 1.2214002013206482 mins, Total time: 34.89860175848007 mins
+Train -- Epoch:27, loss:5.6319804191589355, Rollout:30
+Training epoch completed in 1.1968473196029663 mins, Total time: 36.09545067151387 mins
+Training epoch completed in 1.281359032789866 mins, Total time: 37.376814039548236 mins
+Train -- Epoch:29, loss:5.620264530181885, Rollout:30
+Training epoch completed in 1.2583460291226705 mins, Total time: 38.63516117334366 mins
+[32mVal -- Epoch:30, loss:5.658846378326416, Rollout: 1[0m
+[32mVal -- Epoch:30, loss:5.676543712615967, Rollout: 1[0m
+[32mVal -- Epoch:30, loss:5.711560249328613, Rollout: 1[0m
+[32mVal -- Epoch:30, loss:5.687220096588135, Rollout: 1[0m
+[32mVal -- Epoch:30, loss:5.779140949249268, Rollout: 1[0m
+[32mVal -- Epoch:30, loss:5.647816181182861, Rollout: 1[0m
+[32mVal -- Epoch:30, loss:5.7127509117126465, Rollout: 1[0m
+[32mVal -- Epoch:30, loss:5.671313285827637, Rollout: 1[0m
+Validation completed in 0.18191904624303182 mins, Total time: 38.8170818010966 mins
+Training epoch completed in 1.2133944233258565 mins, Total time: 40.03047823111216 mins
+Training epoch completed in 1.2704132874806722 mins, Total time: 41.300892480214436 mins
+Train -- Epoch:32, loss:5.638217926025391, Rollout:30
+Training epoch completed in 1.4106073379516602 mins, Total time: 42.711501733462015 mins
+Training epoch completed in 1.436416538556417 mins, Total time: 44.14792007605235 mins
+Train -- Epoch:34, loss:5.659773349761963, Rollout:30
+Training epoch completed in 1.219829305013021 mins, Total time: 45.36775054136912 mins
+[32mVal -- Epoch:35, loss:5.664061069488525, Rollout: 1[0m
+[32mVal -- Epoch:35, loss:5.683206081390381, Rollout: 1[0m
+[32mVal -- Epoch:35, loss:5.7192583084106445, Rollout: 1[0m
+[32mVal -- Epoch:35, loss:5.67783784866333, Rollout: 1[0m
+[32mVal -- Epoch:35, loss:5.778636932373047, Rollout: 1[0m
+[32mVal -- Epoch:35, loss:5.646653175354004, Rollout: 1[0m
+[32mVal -- Epoch:35, loss:5.7174391746521, Rollout: 1[0m
+[32mVal -- Epoch:35, loss:5.663679599761963, Rollout: 1[0m
+Validation completed in 0.18073980410893759 mins, Total time: 45.54849109649658 mins
+Training epoch completed in 1.3356707612673442 mins, Total time: 46.884162676334384 mins
+Training epoch completed in 1.2237905899683634 mins, Total time: 48.107954279581705 mins
+Train -- Epoch:37, loss:5.637596607208252, Rollout:30
+Training epoch completed in 1.415415104230245 mins, Total time: 49.52337100505829 mins
+Training epoch completed in 1.488511856396993 mins, Total time: 51.011885889371236 mins
+Train -- Epoch:39, loss:5.662876129150391, Rollout:30
+Training epoch completed in 1.406782122453054 mins, Total time: 52.41866907278697 mins
+[32mVal -- Epoch:40, loss:5.67732048034668, Rollout: 1[0m
+[32mVal -- Epoch:40, loss:5.6918439865112305, Rollout: 1[0m
+[32mVal -- Epoch:40, loss:5.722218036651611, Rollout: 1[0m
+[32mVal -- Epoch:40, loss:5.6768388748168945, Rollout: 1[0m
+[32mVal -- Epoch:40, loss:5.778390407562256, Rollout: 1[0m
+[32mVal -- Epoch:40, loss:5.64465856552124, Rollout: 1[0m
+[32mVal -- Epoch:40, loss:5.7245097160339355, Rollout: 1[0m
+[32mVal -- Epoch:40, loss:5.6664509773254395, Rollout: 1[0m
+Validation completed in 0.18358796040217082 mins, Total time: 52.602259341875715 mins
+Training epoch completed in 1.218199872970581 mins, Total time: 53.82045996983846 mins
+Training epoch completed in 1.2427096883455913 mins, Total time: 55.06317116419474 mins
+Train -- Epoch:42, loss:5.643496990203857, Rollout:30
+Training epoch completed in 1.202499222755432 mins, Total time: 56.26567132870356 mins
+Training epoch completed in 1.2117516199747722 mins, Total time: 57.47742382685343 mins
+Train -- Epoch:44, loss:5.62383508682251, Rollout:30
+Training epoch completed in 1.1576878348986308 mins, Total time: 58.635112758477526 mins
+[32mVal -- Epoch:45, loss:5.67751932144165, Rollout: 1[0m
+[32mVal -- Epoch:45, loss:5.680703163146973, Rollout: 1[0m
+[32mVal -- Epoch:45, loss:5.717288017272949, Rollout: 1[0m
+[32mVal -- Epoch:45, loss:5.681300640106201, Rollout: 1[0m
+[32mVal -- Epoch:45, loss:5.776266098022461, Rollout: 1[0m
+[32mVal -- Epoch:45, loss:5.642186641693115, Rollout: 1[0m
+[32mVal -- Epoch:45, loss:5.7190117835998535, Rollout: 1[0m
+[32mVal -- Epoch:45, loss:5.6768059730529785, Rollout: 1[0m
+Validation completed in 0.18873066902160646 mins, Total time: 58.82384436527888 mins
+Training epoch completed in 1.3880614360173544 mins, Total time: 60.21190683841705 mins
+Training epoch completed in 1.2375872254371643 mins, Total time: 61.449495963255565 mins
+Train -- Epoch:47, loss:5.631564140319824, Rollout:30
+Training epoch completed in 1.1787988344828289 mins, Total time: 62.628295707702634 mins
+Training epoch completed in 1.2212652722994486 mins, Total time: 63.84956204096476 mins
+Train -- Epoch:49, loss:5.679959774017334, Rollout:30
+Training epoch completed in 1.2332247217496237 mins, Total time: 65.08278774023056 mins
+[32mVal -- Epoch:50, loss:5.677030563354492, Rollout: 1[0m
+[32mVal -- Epoch:50, loss:5.685263633728027, Rollout: 1[0m
+[32mVal -- Epoch:50, loss:5.712609767913818, Rollout: 1[0m
+[32mVal -- Epoch:50, loss:5.679819107055664, Rollout: 1[0m
+[32mVal -- Epoch:50, loss:5.777527809143066, Rollout: 1[0m
+[32mVal -- Epoch:50, loss:5.642839431762695, Rollout: 1[0m
+[32mVal -- Epoch:50, loss:5.723923683166504, Rollout: 1[0m
+[32mVal -- Epoch:50, loss:5.677877902984619, Rollout: 1[0m
+Validation completed in 0.1848461151123047 mins, Total time: 65.2676354765892 mins
+Training epoch completed in 1.152282428741455 mins, Total time: 66.41991872390112 mins
+Training epoch completed in 1.1597490270932516 mins, Total time: 67.5796695391337 mins
+Train -- Epoch:52, loss:5.6271843910217285, Rollout:30
+Training epoch completed in 1.452453645070394 mins, Total time: 69.03212431271871 mins
+Training epoch completed in 1.4696137070655824 mins, Total time: 70.50173997481664 mins
+Train -- Epoch:54, loss:5.717288494110107, Rollout:30
+Training epoch completed in 1.4974743525187175 mins, Total time: 71.99921549956004 mins
+[32mVal -- Epoch:55, loss:5.679102420806885, Rollout: 1[0m
+[32mVal -- Epoch:55, loss:5.6891045570373535, Rollout: 1[0m
+[32mVal -- Epoch:55, loss:5.703738689422607, Rollout: 1[0m
+[32mVal -- Epoch:55, loss:5.675963401794434, Rollout: 1[0m
+[32mVal -- Epoch:55, loss:5.784645080566406, Rollout: 1[0m
+[32mVal -- Epoch:55, loss:5.645212650299072, Rollout: 1[0m
+[32mVal -- Epoch:55, loss:5.7286458015441895, Rollout: 1[0m
+[32mVal -- Epoch:55, loss:5.680760383605957, Rollout: 1[0m
+Validation completed in 0.20277237097422282 mins, Total time: 72.20198891957601 mins
+Training epoch completed in 1.5414475560188294 mins, Total time: 73.7434376835823 mins
+Training epoch completed in 1.6364365696907044 mins, Total time: 75.37987619638443 mins
+Train -- Epoch:57, loss:5.601554870605469, Rollout:30
+Training epoch completed in 1.6180927952130635 mins, Total time: 76.99797015587488 mins
+Training epoch completed in 1.654390533765157 mins, Total time: 78.6523626923561 mins
+Train -- Epoch:59, loss:5.614248752593994, Rollout:30
+Training epoch completed in 1.5674261371294658 mins, Total time: 80.21978995402654 mins
+[32mVal -- Epoch:60, loss:5.684965133666992, Rollout: 1[0m
+[32mVal -- Epoch:60, loss:5.683278560638428, Rollout: 1[0m
+[32mVal -- Epoch:60, loss:5.724300384521484, Rollout: 1[0m
+[32mVal -- Epoch:60, loss:5.679564952850342, Rollout: 1[0m
+[32mVal -- Epoch:60, loss:5.777969837188721, Rollout: 1[0m
+[32mVal -- Epoch:60, loss:5.6349968910217285, Rollout: 1[0m
+[32mVal -- Epoch:60, loss:5.725689888000488, Rollout: 1[0m
+[32mVal -- Epoch:60, loss:5.688844680786133, Rollout: 1[0m
+Validation completed in 0.24129492441813152 mins, Total time: 80.46108775138855 mins
+Training epoch completed in 1.5677015980084736 mins, Total time: 82.02884622812272 mins
+Training epoch completed in 1.573861845334371 mins, Total time: 83.60271742343903 mins
+Train -- Epoch:62, loss:5.714580535888672, Rollout:30
+Training epoch completed in 1.5894941051801046 mins, Total time: 85.19221355120341 mins
+Training epoch completed in 1.6346080422401428 mins, Total time: 86.82683314879735 mins
+Train -- Epoch:64, loss:5.592523097991943, Rollout:30
+Training epoch completed in 1.563340413570404 mins, Total time: 88.39017487366995 mins
+[32mVal -- Epoch:65, loss:5.679773807525635, Rollout: 10[0m
+[32mVal -- Epoch:65, loss:5.688318252563477, Rollout: 10[0m
+[32mVal -- Epoch:65, loss:5.7119526863098145, Rollout: 10[0m
+[32mVal -- Epoch:65, loss:5.679873466491699, Rollout: 10[0m
+[32mVal -- Epoch:65, loss:5.78458309173584, Rollout: 10[0m
+[32mVal -- Epoch:65, loss:5.644835948944092, Rollout: 10[0m
+[32mVal -- Epoch:65, loss:5.725108623504639, Rollout: 10[0m
+[32mVal -- Epoch:65, loss:5.695899486541748, Rollout: 10[0m
+Validation completed in 0.2441463271776835 mins, Total time: 88.63433322906494 mins
+Training epoch completed in 1.57565491994222 mins, Total time: 90.21002229849498 mins
+Train -- Epoch:66, loss:5.646875858306885, Rollout:30
+Training epoch completed in 1.6345447381337483 mins, Total time: 91.84456814924876 mins
+Training epoch completed in 1.6291295727094015 mins, Total time: 93.47370469967524 mins
+Training epoch completed in 1.5678797046343484 mins, Total time: 95.04158639907837 mins
+Train -- Epoch:69, loss:5.637068271636963, Rollout:30
+Training epoch completed in 1.5636730154355367 mins, Total time: 96.60526051918666 mins
+[32mVal -- Epoch:70, loss:5.695001602172852, Rollout: 10[0m
+[32mVal -- Epoch:70, loss:5.68820858001709, Rollout: 10[0m
+[32mVal -- Epoch:70, loss:5.710583209991455, Rollout: 10[0m
+[32mVal -- Epoch:70, loss:5.685274600982666, Rollout: 10[0m
+[32mVal -- Epoch:70, loss:5.783008575439453, Rollout: 10[0m
+[32mVal -- Epoch:70, loss:5.646724700927734, Rollout: 10[0m
+[32mVal -- Epoch:70, loss:5.719451904296875, Rollout: 10[0m
+[32mVal -- Epoch:70, loss:5.688565254211426, Rollout: 10[0m
+Validation completed in 0.2361146370569865 mins, Total time: 96.84137690464655 mins
+Training epoch completed in 1.5914902806282043 mins, Total time: 98.43288889726003 mins
+Train -- Epoch:71, loss:5.76998233795166, Rollout:30
+Training epoch completed in 1.4730704228083293 mins, Total time: 99.9059728384018 mins
+Training epoch completed in 1.515521522363027 mins, Total time: 101.42151476939519 mins
+Training epoch completed in 1.6798633853594462 mins, Total time: 103.10140445629756 mins
+Train -- Epoch:74, loss:5.608431339263916, Rollout:30
+Training epoch completed in 1.5856242219607035 mins, Total time: 104.68703017632167 mins
+[32mVal -- Epoch:75, loss:5.6872124671936035, Rollout: 10[0m
+[32mVal -- Epoch:75, loss:5.686384677886963, Rollout: 10[0m
+[32mVal -- Epoch:75, loss:5.715612888336182, Rollout: 10[0m
+[32mVal -- Epoch:75, loss:5.687283039093018, Rollout: 10[0m
+[32mVal -- Epoch:75, loss:5.786102294921875, Rollout: 10[0m
+[32mVal -- Epoch:75, loss:5.651734828948975, Rollout: 10[0m
+[32mVal -- Epoch:75, loss:5.71408224105835, Rollout: 10[0m
+[32mVal -- Epoch:75, loss:5.6873979568481445, Rollout: 10[0m
+Validation completed in 0.2708583354949951 mins, Total time: 104.95789029598237 mins
+Training epoch completed in 1.5794070879618327 mins, Total time: 106.53730622132619 mins
+Train -- Epoch:76, loss:5.620194435119629, Rollout:30
+Training epoch completed in 1.5550535798072815 mins, Total time: 108.09236099720002 mins
+Training epoch completed in 1.6347391287485757 mins, Total time: 109.7271009683609 mins
+Training epoch completed in 1.595126744111379 mins, Total time: 111.32222892045975 mins
+Train -- Epoch:79, loss:5.5770087242126465, Rollout:30
+Training epoch completed in 1.566040035088857 mins, Total time: 112.88828356663386 mins
+[32mVal -- Epoch:80, loss:5.685932159423828, Rollout: 10[0m
+[32mVal -- Epoch:80, loss:5.684369087219238, Rollout: 10[0m
+[32mVal -- Epoch:80, loss:5.704895973205566, Rollout: 10[0m
+[32mVal -- Epoch:80, loss:5.677137851715088, Rollout: 10[0m
+[32mVal -- Epoch:80, loss:5.790595054626465, Rollout: 10[0m
+[32mVal -- Epoch:80, loss:5.647619724273682, Rollout: 10[0m
+[32mVal -- Epoch:80, loss:5.732280254364014, Rollout: 10[0m
+[32mVal -- Epoch:80, loss:5.695642471313477, Rollout: 10[0m
+Validation completed in 0.23781199455261232 mins, Total time: 113.1260967294375 mins
+Training epoch completed in 1.663103206952413 mins, Total time: 114.78922237555186 mins
+Train -- Epoch:81, loss:5.637271881103516, Rollout:30
+Training epoch completed in 1.6419872800509134 mins, Total time: 116.43121161063512 mins
+Training epoch completed in 1.52939829826355 mins, Total time: 117.96061078310012 mins
+Training epoch completed in 1.5330770850181579 mins, Total time: 119.4936896999677 mins
+Train -- Epoch:84, loss:5.646256923675537, Rollout:30
+Training epoch completed in 1.5469841837882996 mins, Total time: 121.04067498445511 mins
+[32mVal -- Epoch:85, loss:5.685229778289795, Rollout: 30[0m
+[32mVal -- Epoch:85, loss:5.6826276779174805, Rollout: 30[0m
+[32mVal -- Epoch:85, loss:5.713522434234619, Rollout: 30[0m
+[32mVal -- Epoch:85, loss:5.681336879730225, Rollout: 30[0m
+[32mVal -- Epoch:85, loss:5.779152870178223, Rollout: 30[0m
+[32mVal -- Epoch:85, loss:5.648573398590088, Rollout: 30[0m
+[32mVal -- Epoch:85, loss:5.7282867431640625, Rollout: 30[0m
+[32mVal -- Epoch:85, loss:5.688864707946777, Rollout: 30[0m
+Validation completed in 0.23942890961964924 mins, Total time: 121.28011922041576 mins
+Training epoch completed in 1.6343293825785319 mins, Total time: 122.91447155475616 mins
+Train -- Epoch:86, loss:5.637794017791748, Rollout:30
+Training epoch completed in 1.642923367023468 mins, Total time: 124.55739707946778 mins
+Training epoch completed in 1.5160760800043742 mins, Total time: 126.07347538073857 mins
+Training epoch completed in 1.6861113429069519 mins, Total time: 127.7595886985461 mins
+Train -- Epoch:89, loss:5.614328861236572, Rollout:30
+Training epoch completed in 1.6897863507270814 mins, Total time: 129.44937661886215 mins
+[32mVal -- Epoch:90, loss:5.684277534484863, Rollout: 30[0m
+[32mVal -- Epoch:90, loss:5.674844741821289, Rollout: 30[0m
+[32mVal -- Epoch:90, loss:5.715651512145996, Rollout: 30[0m
+[32mVal -- Epoch:90, loss:5.681675434112549, Rollout: 30[0m
+[32mVal -- Epoch:90, loss:5.787865161895752, Rollout: 30[0m
+[32mVal -- Epoch:90, loss:5.639984607696533, Rollout: 30[0m
+[32mVal -- Epoch:90, loss:5.721309661865234, Rollout: 30[0m
+[32mVal -- Epoch:90, loss:5.697006702423096, Rollout: 30[0m
+Validation completed in 0.24108421802520752 mins, Total time: 129.69047394196193 mins
+Training epoch completed in 1.5562400301297505 mins, Total time: 131.24673608541488 mins
+Train -- Epoch:91, loss:5.650966644287109, Rollout:30
+Training epoch completed in 1.5048410296440125 mins, Total time: 132.75157909393312 mins
+Training epoch completed in 1.536720371246338 mins, Total time: 134.28830072482427 mins
+Training epoch completed in 1.5165746291478475 mins, Total time: 135.8048858642578 mins
+Train -- Epoch:94, loss:5.606181621551514, Rollout:30
+Training epoch completed in 1.7218257029851278 mins, Total time: 137.52672955989837 mins
+[32mVal -- Epoch:95, loss:5.683601379394531, Rollout: 30[0m
+[32mVal -- Epoch:95, loss:5.68988037109375, Rollout: 30[0m
+[32mVal -- Epoch:95, loss:5.713254451751709, Rollout: 30[0m
+[32mVal -- Epoch:95, loss:5.689865589141846, Rollout: 30[0m
+[32mVal -- Epoch:95, loss:5.795541763305664, Rollout: 30[0m
+[32mVal -- Epoch:95, loss:5.644003868103027, Rollout: 30[0m
+[32mVal -- Epoch:95, loss:5.726880073547363, Rollout: 30[0m
+[32mVal -- Epoch:95, loss:5.697153568267822, Rollout: 30[0m
+Validation completed in 0.24202448924382527 mins, Total time: 137.7687558611234 mins
+Training epoch completed in 1.6548617482185364 mins, Total time: 139.42363940874736 mins
+Train -- Epoch:96, loss:5.5950236320495605, Rollout:30
+Training epoch completed in 1.5479568481445312 mins, Total time: 140.97160767714183 mins
+Training epoch completed in 1.5643095016479491 mins, Total time: 142.53591811259588 mins
+Training epoch completed in 1.540075914065043 mins, Total time: 144.07601490418116 mins
+Train -- Epoch:99, loss:5.62038516998291, Rollout:30
+Training epoch completed in 1.602520461877187 mins, Total time: 145.67857128779093 mins
+[32mVal -- Epoch:100, loss:5.678454875946045, Rollout: 30[0m
+[32mVal -- Epoch:100, loss:5.68875789642334, Rollout: 30[0m
+[32mVal -- Epoch:100, loss:5.718451976776123, Rollout: 30[0m
+[32mVal -- Epoch:100, loss:5.6879048347473145, Rollout: 30[0m
+[32mVal -- Epoch:100, loss:5.797139644622803, Rollout: 30[0m
+[32mVal -- Epoch:100, loss:5.641535758972168, Rollout: 30[0m
+[32mVal -- Epoch:100, loss:5.725525379180908, Rollout: 30[0m
+[32mVal -- Epoch:100, loss:5.692945957183838, Rollout: 30[0m
+Validation completed in 0.24201404253641765 mins, Total time: 145.92058631976445 mins
+Training epoch completed in 1.5250552336374918 mins, Total time: 147.44567207098007 mins
+Train -- Epoch:101, loss:5.572850227355957, Rollout:30
+Training epoch completed in 1.5366507728894552 mins, Total time: 148.98232385317485 mins
+Training epoch completed in 1.5509276747703553 mins, Total time: 150.53325250943502 mins
+Training epoch completed in 1.7417498270670573 mins, Total time: 152.2750042994817 mins
+Train -- Epoch:104, loss:5.583431720733643, Rollout:30
+Training epoch completed in 1.6997040510177612 mins, Total time: 153.97471032937366 mins
+[32mVal -- Epoch:105, loss:5.678668022155762, Rollout: 30[0m
+[32mVal -- Epoch:105, loss:5.687069892883301, Rollout: 30[0m
+[32mVal -- Epoch:105, loss:5.710762977600098, Rollout: 30[0m
+[32mVal -- Epoch:105, loss:5.684710502624512, Rollout: 30[0m
+[32mVal -- Epoch:105, loss:5.787869453430176, Rollout: 30[0m
+[32mVal -- Epoch:105, loss:5.643452167510986, Rollout: 30[0m
+[32mVal -- Epoch:105, loss:5.718203544616699, Rollout: 30[0m
+[32mVal -- Epoch:105, loss:5.684823513031006, Rollout: 30[0m
+Validation completed in 0.26085124413172406 mins, Total time: 154.2355634053548 mins
+Training epoch completed in 1.4974661747614542 mins, Total time: 155.7330571571986 mins
+Train -- Epoch:106, loss:5.659911632537842, Rollout:30
+Training epoch completed in 1.5741990367571512 mins, Total time: 157.3072581489881 mins
+Training epoch completed in 1.6210268298784891 mins, Total time: 158.9282869299253 mins
+Training epoch completed in 1.567661213874817 mins, Total time: 160.49594928423565 mins
+Train -- Epoch:109, loss:5.650078773498535, Rollout:30
+Training epoch completed in 1.5854056517283122 mins, Total time: 162.08136452436446 mins
+[32mVal -- Epoch:110, loss:5.696537971496582, Rollout: 30[0m
+[32mVal -- Epoch:110, loss:5.689429759979248, Rollout: 30[0m
+[32mVal -- Epoch:110, loss:5.716787338256836, Rollout: 30[0m
+[32mVal -- Epoch:110, loss:5.695998191833496, Rollout: 30[0m
+[32mVal -- Epoch:110, loss:5.79774284362793, Rollout: 30[0m
+[32mVal -- Epoch:110, loss:5.652399063110352, Rollout: 30[0m
+[32mVal -- Epoch:110, loss:5.731176853179932, Rollout: 30[0m
+[32mVal -- Epoch:110, loss:5.702493667602539, Rollout: 30[0m
+Validation completed in 0.24623350699742635 mins, Total time: 162.32759977579116 mins
+Training epoch completed in 1.6378995974858601 mins, Total time: 163.9655199845632 mins
+Train -- Epoch:111, loss:5.563116550445557, Rollout:30
+Training epoch completed in 1.5106953859329224 mins, Total time: 165.47621658245723 mins
+Training epoch completed in 1.6248440345128377 mins, Total time: 167.10106253623962 mins
+Training epoch completed in 1.5736332853635153 mins, Total time: 168.6746969540914 mins
+Train -- Epoch:114, loss:5.594879627227783, Rollout:30
+Training epoch completed in 1.6282626350720724 mins, Total time: 170.3029615521431 mins
+[32mVal -- Epoch:115, loss:5.680522441864014, Rollout: 30[0m
+[32mVal -- Epoch:115, loss:5.687678813934326, Rollout: 30[0m
+[32mVal -- Epoch:115, loss:5.724699020385742, Rollout: 30[0m
+[32mVal -- Epoch:115, loss:5.683422088623047, Rollout: 30[0m
+[32mVal -- Epoch:115, loss:5.784930229187012, Rollout: 30[0m
+[32mVal -- Epoch:115, loss:5.639168739318848, Rollout: 30[0m
+[32mVal -- Epoch:115, loss:5.730489730834961, Rollout: 30[0m
+[32mVal -- Epoch:115, loss:5.693408966064453, Rollout: 30[0m
+Validation completed in 0.2734964450200399 mins, Total time: 170.57646146615346 mins
+Training epoch completed in 1.6663354555765788 mins, Total time: 172.24280586242676 mins
+Train -- Epoch:116, loss:5.626302242279053, Rollout:30
+Training epoch completed in 1.5424076358477274 mins, Total time: 173.78523412148158 mins
+Training epoch completed in 1.5203909913698832 mins, Total time: 175.30562710762024 mins
+Training epoch completed in 1.5849049727121989 mins, Total time: 176.89053404331207 mins
+Train -- Epoch:119, loss:5.561131000518799, Rollout:30
+Training epoch completed in 1.5609891136487326 mins, Total time: 178.45154183308284 mins
+[32mVal -- Epoch:120, loss:5.689327716827393, Rollout: 30[0m
+[32mVal -- Epoch:120, loss:5.693317413330078, Rollout: 30[0m
+[32mVal -- Epoch:120, loss:5.721103191375732, Rollout: 30[0m
+[32mVal -- Epoch:120, loss:5.699310779571533, Rollout: 30[0m
+[32mVal -- Epoch:120, loss:5.77771520614624, Rollout: 30[0m
+[32mVal -- Epoch:120, loss:5.646036148071289, Rollout: 30[0m
+[32mVal -- Epoch:120, loss:5.730815887451172, Rollout: 30[0m
+[32mVal -- Epoch:120, loss:5.702332496643066, Rollout: 30[0m
+Validation completed in 0.26649244626363117 mins, Total time: 178.71803613503775 mins
+Training epoch completed in 1.6258983651796977 mins, Total time: 180.3439457853635 mins
+Train -- Epoch:121, loss:5.611562252044678, Rollout:30
+Training epoch completed in 1.601326314608256 mins, Total time: 181.9452739874522 mins
+Training epoch completed in 1.6203470468521117 mins, Total time: 183.56562492052714 mins
+Training epoch completed in 1.650214389959971 mins, Total time: 185.21584121783573 mins
+Train -- Epoch:124, loss:5.640251636505127, Rollout:30
+Training epoch completed in 1.5337741533915201 mins, Total time: 186.7496164759 mins
+[32mVal -- Epoch:125, loss:5.680001735687256, Rollout: 30[0m
+[32mVal -- Epoch:125, loss:5.684167385101318, Rollout: 30[0m
+[32mVal -- Epoch:125, loss:5.718054294586182, Rollout: 30[0m
+[32mVal -- Epoch:125, loss:5.685795783996582, Rollout: 30[0m
+[32mVal -- Epoch:125, loss:5.791788101196289, Rollout: 30[0m
+[32mVal -- Epoch:125, loss:5.639849662780762, Rollout: 30[0m
+[32mVal -- Epoch:125, loss:5.725419044494629, Rollout: 30[0m
+[32mVal -- Epoch:125, loss:5.690984725952148, Rollout: 30[0m
+Validation completed in 0.2350191036860148 mins, Total time: 186.98463670412698 mins
+Training epoch completed in 1.563511073589325 mins, Total time: 188.54817271232605 mins
+Train -- Epoch:126, loss:5.602933883666992, Rollout:30
+Training epoch completed in 1.5677836457888286 mins, Total time: 190.11595763762793 mins
+Training epoch completed in 1.5442972381909688 mins, Total time: 191.66025685866674 mins
+Training epoch completed in 1.518677584330241 mins, Total time: 193.17893555164338 mins
+Train -- Epoch:129, loss:5.6342291831970215, Rollout:30
+Training epoch completed in 1.5627533713976542 mins, Total time: 194.74168996413547 mins
+[32mVal -- Epoch:130, loss:5.683596611022949, Rollout: 30[0m
+[32mVal -- Epoch:130, loss:5.685201168060303, Rollout: 30[0m
+[32mVal -- Epoch:130, loss:5.7203755378723145, Rollout: 30[0m
+[32mVal -- Epoch:130, loss:5.691710472106934, Rollout: 30[0m
+[32mVal -- Epoch:130, loss:5.783816337585449, Rollout: 30[0m
+[32mVal -- Epoch:130, loss:5.637466907501221, Rollout: 30[0m
+[32mVal -- Epoch:130, loss:5.722721576690674, Rollout: 30[0m
+[32mVal -- Epoch:130, loss:5.700522422790527, Rollout: 30[0m
+Validation completed in 0.2526368578275045 mins, Total time: 194.99434574842454 mins
+Training epoch completed in 1.6399349411328634 mins, Total time: 196.6342827041944 mins
+Train -- Epoch:131, loss:5.610365867614746, Rollout:30
+Training epoch completed in 1.4907275239626567 mins, Total time: 198.1250121196111 mins
+Training epoch completed in 1.5940484046936034 mins, Total time: 199.71906160116197 mins
+Train -- Epoch:133, loss:5.642059326171875, Rollout:30
+Training epoch completed in 1.6113846143086752 mins, Total time: 201.33044737974802 mins
+Training epoch completed in 1.660572588443756 mins, Total time: 202.9910211801529 mins
+[32mVal -- Epoch:135, loss:5.6855902671813965, Rollout: 30[0m
+[32mVal -- Epoch:135, loss:5.685587406158447, Rollout: 30[0m
+[32mVal -- Epoch:135, loss:5.709689140319824, Rollout: 30[0m
+[32mVal -- Epoch:135, loss:5.6976637840271, Rollout: 30[0m
+[32mVal -- Epoch:135, loss:5.785922050476074, Rollout: 30[0m
+[32mVal -- Epoch:135, loss:5.649164199829102, Rollout: 30[0m
+[32mVal -- Epoch:135, loss:5.716220855712891, Rollout: 30[0m
+[32mVal -- Epoch:135, loss:5.700722694396973, Rollout: 30[0m
+Validation completed in 0.277161169052124 mins, Total time: 203.26818418105444 mins
+Training epoch completed in 1.5968287467956543 mins, Total time: 204.86502151886623 mins
+Train -- Epoch:136, loss:5.613868236541748, Rollout:30
+Training epoch completed in 1.4878188490867614 mins, Total time: 206.35284147262573 mins
+Training epoch completed in 1.5578164339065552 mins, Total time: 207.91066002845764 mins
+Train -- Epoch:138, loss:5.632515907287598, Rollout:30
+Training epoch completed in 1.487167247136434 mins, Total time: 209.39782860676448 mins
+Training epoch completed in 1.4993323723475138 mins, Total time: 210.89718473354975 mins
+[32mVal -- Epoch:140, loss:5.681046009063721, Rollout: 30[0m
+[32mVal -- Epoch:140, loss:5.685534477233887, Rollout: 30[0m
+[32mVal -- Epoch:140, loss:5.70993709564209, Rollout: 30[0m
+[32mVal -- Epoch:140, loss:5.681334972381592, Rollout: 30[0m
+[32mVal -- Epoch:140, loss:5.782731056213379, Rollout: 30[0m
+[32mVal -- Epoch:140, loss:5.635973930358887, Rollout: 30[0m
+[32mVal -- Epoch:140, loss:5.722748279571533, Rollout: 30[0m
+[32mVal -- Epoch:140, loss:5.704136371612549, Rollout: 30[0m
+Validation completed in 0.26957236528396605 mins, Total time: 211.16675881147384 mins
+Training epoch completed in 1.5210790912310281 mins, Total time: 212.6878578186035 mins
+Train -- Epoch:141, loss:5.593875885009766, Rollout:30
+Training epoch completed in 1.6245017051696777 mins, Total time: 214.31237389643988 mins
+Training epoch completed in 1.5199536720911662 mins, Total time: 215.83232951958973 mins
+Train -- Epoch:143, loss:5.615039825439453, Rollout:30
+Training epoch completed in 1.6139630476633708 mins, Total time: 217.44629584948223 mins
+Training epoch completed in 1.5143853346506755 mins, Total time: 218.96069667736688 mins
+[32mVal -- Epoch:145, loss:5.674134731292725, Rollout: 30[0m
+[32mVal -- Epoch:145, loss:5.685125350952148, Rollout: 30[0m
+[32mVal -- Epoch:145, loss:5.710278511047363, Rollout: 30[0m
+[32mVal -- Epoch:145, loss:5.687778949737549, Rollout: 30[0m
+[32mVal -- Epoch:145, loss:5.789367198944092, Rollout: 30[0m
+[32mVal -- Epoch:145, loss:5.635222911834717, Rollout: 30[0m
+[32mVal -- Epoch:145, loss:5.720843315124512, Rollout: 30[0m
+[32mVal -- Epoch:145, loss:5.692592144012451, Rollout: 30[0m
+Validation completed in 0.23458311557769776 mins, Total time: 219.19528075853984 mins
+Training epoch completed in 1.5723404208819072 mins, Total time: 220.76764487425487 mins
+Train -- Epoch:146, loss:5.614040851593018, Rollout:30
+Training epoch completed in 1.5132565339406332 mins, Total time: 222.2809340874354 mins
+Training epoch completed in 1.6316692988077799 mins, Total time: 223.91262496709822 mins
+Train -- Epoch:148, loss:5.612769603729248, Rollout:30
+Training epoch completed in 1.5353698492050172 mins, Total time: 225.44799606402714 mins
+Training epoch completed in 1.569259528319041 mins, Total time: 227.01725769440333 mins
+[32mVal -- Epoch:150, loss:5.677392959594727, Rollout: 30[0m
+[32mVal -- Epoch:150, loss:5.68900203704834, Rollout: 30[0m
+[32mVal -- Epoch:150, loss:5.712397575378418, Rollout: 30[0m
+[32mVal -- Epoch:150, loss:5.686810493469238, Rollout: 30[0m
+[32mVal -- Epoch:150, loss:5.794585227966309, Rollout: 30[0m
+[32mVal -- Epoch:150, loss:5.643106460571289, Rollout: 30[0m
+[32mVal -- Epoch:150, loss:5.7177910804748535, Rollout: 30[0m
+[32mVal -- Epoch:150, loss:5.690627098083496, Rollout: 30[0m
+Validation completed in 0.26070136626561485 mins, Total time: 227.27796927690505 mins
+Training epoch completed in 1.5427212198575337 mins, Total time: 228.82069991827012 mins
+Train -- Epoch:151, loss:5.606639862060547, Rollout:30
+Training epoch completed in 1.554746143023173 mins, Total time: 230.3754486680031 mins
+Training epoch completed in 1.522860860824585 mins, Total time: 231.89834285974501 mins
+Train -- Epoch:153, loss:5.591126918792725, Rollout:30
+Training epoch completed in 1.5596587101618449 mins, Total time: 233.45800362825395 mins
+Training epoch completed in 1.610809830824534 mins, Total time: 235.06881558100383 mins
+[32mVal -- Epoch:155, loss:5.685420989990234, Rollout: 30[0m
+[32mVal -- Epoch:155, loss:5.698847770690918, Rollout: 30[0m
+[32mVal -- Epoch:155, loss:5.70816707611084, Rollout: 30[0m
+[32mVal -- Epoch:155, loss:5.689624786376953, Rollout: 30[0m
+[32mVal -- Epoch:155, loss:5.790740013122559, Rollout: 30[0m
+[32mVal -- Epoch:155, loss:5.640600204467773, Rollout: 30[0m
+[32mVal -- Epoch:155, loss:5.723097801208496, Rollout: 30[0m
+[32mVal -- Epoch:155, loss:5.694309711456299, Rollout: 30[0m
+Validation completed in 0.23389074007670085 mins, Total time: 235.30270808935165 mins
+Training epoch completed in 1.5854939579963685 mins, Total time: 236.88820371627807 mins
+Train -- Epoch:156, loss:5.587522506713867, Rollout:30
+Training epoch completed in 1.5057129939397176 mins, Total time: 238.39391870498656 mins
+Training epoch completed in 1.5110655705134073 mins, Total time: 239.90499941507974 mins
+Train -- Epoch:158, loss:5.646848201751709, Rollout:30
+Training epoch completed in 1.5131821354230246 mins, Total time: 241.4181835134824 mins
+Training epoch completed in 1.5374509533246359 mins, Total time: 242.9556365331014 mins
+[32mVal -- Epoch:160, loss:5.6777496337890625, Rollout: 30[0m
+[32mVal -- Epoch:160, loss:5.690378665924072, Rollout: 30[0m
+[32mVal -- Epoch:160, loss:5.708192348480225, Rollout: 30[0m
+[32mVal -- Epoch:160, loss:5.694148063659668, Rollout: 30[0m
+[32mVal -- Epoch:160, loss:5.782291889190674, Rollout: 30[0m
+[32mVal -- Epoch:160, loss:5.638701915740967, Rollout: 30[0m
+[32mVal -- Epoch:160, loss:5.7164764404296875, Rollout: 30[0m
+[32mVal -- Epoch:160, loss:5.685884952545166, Rollout: 30[0m
+Validation completed in 0.24341284036636351 mins, Total time: 243.19905118544895 mins
+Training epoch completed in 1.5633596777915955 mins, Total time: 244.76243600845336 mins
+Train -- Epoch:161, loss:5.593971252441406, Rollout:30
+Training epoch completed in 1.5089601834615072 mins, Total time: 246.27139819860457 mins
+Training epoch completed in 1.5052843769391377 mins, Total time: 247.77668468554813 mins
+Train -- Epoch:163, loss:5.627418518066406, Rollout:30
+Training epoch completed in 1.6889300107955934 mins, Total time: 249.46563665072122 mins
+Training epoch completed in 1.5294305086135864 mins, Total time: 250.99506912231445 mins
+[32mVal -- Epoch:165, loss:5.678798675537109, Rollout: 30[0m
+[32mVal -- Epoch:165, loss:5.698695182800293, Rollout: 30[0m
+[32mVal -- Epoch:165, loss:5.714423656463623, Rollout: 30[0m
+[32mVal -- Epoch:165, loss:5.692868232727051, Rollout: 30[0m
+[32mVal -- Epoch:165, loss:5.787739276885986, Rollout: 30[0m
+[32mVal -- Epoch:165, loss:5.646185398101807, Rollout: 30[0m
+[32mVal -- Epoch:165, loss:5.728046417236328, Rollout: 30[0m
+[32mVal -- Epoch:165, loss:5.701972007751465, Rollout: 30[0m
+Validation completed in 0.23697314659754434 mins, Total time: 251.23204328219097 mins
+Training epoch completed in 1.5247447888056438 mins, Total time: 252.7568144996961 mins
+Train -- Epoch:166, loss:5.601541996002197, Rollout:30
+Training epoch completed in 1.5176274657249451 mins, Total time: 254.27444320122402 mins
+Training epoch completed in 1.6127744356791178 mins, Total time: 255.88722987969717 mins
+Train -- Epoch:168, loss:5.613470077514648, Rollout:30
+Training epoch completed in 1.6319420059521994 mins, Total time: 257.51917391618093 mins
+Training epoch completed in 1.5316606283187866 mins, Total time: 259.0508354743322 mins
+[32mVal -- Epoch:170, loss:5.682943820953369, Rollout: 30[0m
+[32mVal -- Epoch:170, loss:5.693148136138916, Rollout: 30[0m
+[32mVal -- Epoch:170, loss:5.703237533569336, Rollout: 30[0m
+[32mVal -- Epoch:170, loss:5.689071178436279, Rollout: 30[0m
+[32mVal -- Epoch:170, loss:5.791423797607422, Rollout: 30[0m
+[32mVal -- Epoch:170, loss:5.637176513671875, Rollout: 30[0m
+[32mVal -- Epoch:170, loss:5.725896835327148, Rollout: 30[0m
+[32mVal -- Epoch:170, loss:5.698519706726074, Rollout: 30[0m
+Validation completed in 0.2666342735290527 mins, Total time: 259.31747162739435 mins
+Training epoch completed in 1.5173555374145509 mins, Total time: 260.83485019207 mins
+Train -- Epoch:171, loss:5.597414016723633, Rollout:30
+Training epoch completed in 1.6484452565511067 mins, Total time: 262.4832966327667 mins
+Training epoch completed in 1.495106319586436 mins, Total time: 263.97840505043666 mins
+Train -- Epoch:173, loss:5.5744829177856445, Rollout:30
+Training epoch completed in 1.5078840931256612 mins, Total time: 265.4862902998924 mins
+Training epoch completed in 1.5364999175071716 mins, Total time: 267.02279134194055 mins
+[32mVal -- Epoch:175, loss:5.675057411193848, Rollout: 30[0m
+[32mVal -- Epoch:175, loss:5.688222885131836, Rollout: 30[0m
+[32mVal -- Epoch:175, loss:5.70001745223999, Rollout: 30[0m
+[32mVal -- Epoch:175, loss:5.69957160949707, Rollout: 30[0m
+[32mVal -- Epoch:175, loss:5.788451194763184, Rollout: 30[0m
+[32mVal -- Epoch:175, loss:5.642675399780273, Rollout: 30[0m
+[32mVal -- Epoch:175, loss:5.724450588226318, Rollout: 30[0m
+[32mVal -- Epoch:175, loss:5.691450119018555, Rollout: 30[0m
+Validation completed in 0.25541675090789795 mins, Total time: 267.2782092491786 mins
+Training epoch completed in 1.5547208627065023 mins, Total time: 268.83295687437055 mins
+Train -- Epoch:176, loss:5.681497097015381, Rollout:30
+Training epoch completed in 1.5949949781099955 mins, Total time: 270.42795300483704 mins
+Training epoch completed in 1.557030196984609 mins, Total time: 271.984984366099 mins
+Train -- Epoch:178, loss:5.574635028839111, Rollout:30
+Training epoch completed in 1.5480039556821188 mins, Total time: 273.53298938274384 mins
+Training epoch completed in 1.5799885312716166 mins, Total time: 275.1129788517952 mins
+[32mVal -- Epoch:180, loss:5.670356273651123, Rollout: 30[0m
+[32mVal -- Epoch:180, loss:5.695410251617432, Rollout: 30[0m
+[32mVal -- Epoch:180, loss:5.711056232452393, Rollout: 30[0m
+[32mVal -- Epoch:180, loss:5.697438716888428, Rollout: 30[0m
+[32mVal -- Epoch:180, loss:5.799444675445557, Rollout: 30[0m
+[32mVal -- Epoch:180, loss:5.642148017883301, Rollout: 30[0m
+[32mVal -- Epoch:180, loss:5.726012706756592, Rollout: 30[0m
+[32mVal -- Epoch:180, loss:5.699926853179932, Rollout: 30[0m
+Validation completed in 0.23765076398849488 mins, Total time: 275.35063068469367 mins
+Training epoch completed in 1.530634061495463 mins, Total time: 276.8813221057256 mins
+Train -- Epoch:181, loss:5.569432735443115, Rollout:30
+Training epoch completed in 1.682248870531718 mins, Total time: 278.5635722637177 mins
+Training epoch completed in 1.649888034661611 mins, Total time: 280.21346137523653 mins
+Train -- Epoch:183, loss:5.587048053741455, Rollout:30
+Training epoch completed in 1.577810557683309 mins, Total time: 281.7912730137507 mins
+Training epoch completed in 1.5592281142870585 mins, Total time: 283.35051934321723 mins
+[32mVal -- Epoch:185, loss:5.670680999755859, Rollout: 30[0m
+[32mVal -- Epoch:185, loss:5.694677829742432, Rollout: 30[0m
+[32mVal -- Epoch:185, loss:5.711727619171143, Rollout: 30[0m
+[32mVal -- Epoch:185, loss:5.694421291351318, Rollout: 30[0m
+[32mVal -- Epoch:185, loss:5.79326868057251, Rollout: 30[0m
+[32mVal -- Epoch:185, loss:5.646165370941162, Rollout: 30[0m
+[32mVal -- Epoch:185, loss:5.728542327880859, Rollout: 30[0m
+[32mVal -- Epoch:185, loss:5.689590930938721, Rollout: 30[0m
+Validation completed in 0.23715710639953613 mins, Total time: 283.5876899242401 mins
+Training epoch completed in 1.6427448232968649 mins, Total time: 285.2304560025533 mins
+Train -- Epoch:186, loss:5.572458744049072, Rollout:30
+Training epoch completed in 1.6121225357055664 mins, Total time: 286.8425804456075 mins
+Training epoch completed in 1.7328774889310201 mins, Total time: 288.5754799922307 mins
+Train -- Epoch:188, loss:5.596950054168701, Rollout:30
+Training epoch completed in 1.607235050201416 mins, Total time: 290.1827170054118 mins
+Training epoch completed in 1.577635975678762 mins, Total time: 291.7603555162748 mins
+[32mVal -- Epoch:190, loss:5.676432132720947, Rollout: 30[0m
+[32mVal -- Epoch:190, loss:5.695446491241455, Rollout: 30[0m
+[32mVal -- Epoch:190, loss:5.7227864265441895, Rollout: 30[0m
+[32mVal -- Epoch:190, loss:5.700438499450684, Rollout: 30[0m
+[32mVal -- Epoch:190, loss:5.80401086807251, Rollout: 30[0m
+[32mVal -- Epoch:190, loss:5.639456748962402, Rollout: 30[0m
+[32mVal -- Epoch:190, loss:5.742250919342041, Rollout: 30[0m
+[32mVal -- Epoch:190, loss:5.706550598144531, Rollout: 30[0m
+Validation completed in 0.24099933703740437 mins, Total time: 292.0013559341431 mins
+Training epoch completed in 1.5597657283147177 mins, Total time: 293.56115246216456 mins
+Train -- Epoch:191, loss:5.595495700836182, Rollout:30
+Training epoch completed in 1.5532328208287558 mins, Total time: 295.11438713471097 mins
+Training epoch completed in 1.6465885003407796 mins, Total time: 296.7609767436981 mins
+Train -- Epoch:193, loss:5.613171100616455, Rollout:30
+Training epoch completed in 1.616119650999705 mins, Total time: 298.37709819873174 mins
+Training epoch completed in 1.5506260832150778 mins, Total time: 299.9277254462242 mins
+[32mVal -- Epoch:195, loss:5.6853718757629395, Rollout: 30[0m
+[32mVal -- Epoch:195, loss:5.693074703216553, Rollout: 30[0m
+[32mVal -- Epoch:195, loss:5.7084245681762695, Rollout: 30[0m
+[32mVal -- Epoch:195, loss:5.698886394500732, Rollout: 30[0m
+[32mVal -- Epoch:195, loss:5.794295310974121, Rollout: 30[0m
+[32mVal -- Epoch:195, loss:5.6439385414123535, Rollout: 30[0m
+[32mVal -- Epoch:195, loss:5.746031284332275, Rollout: 30[0m
+[32mVal -- Epoch:195, loss:5.704990863800049, Rollout: 30[0m
+Validation completed in 0.2631344795227051 mins, Total time: 300.19089100758237 mins
+Training epoch completed in 1.5426574667294821 mins, Total time: 301.7335579276085 mins
+Train -- Epoch:196, loss:5.592444896697998, Rollout:30
+Training epoch completed in 1.5608161648114522 mins, Total time: 303.2943934718768 mins
+Training epoch completed in 1.5126688281695049 mins, Total time: 304.8070752342542 mins
+Train -- Epoch:198, loss:5.600000381469727, Rollout:30
+Training epoch completed in 1.5951091249783833 mins, Total time: 306.40220812956494 mins
+Training epoch completed in 1.5647924462954204 mins, Total time: 307.9670016288757 mins
+[32mVal -- Epoch:200, loss:5.686095237731934, Rollout: 30[0m
+[32mVal -- Epoch:200, loss:5.6940598487854, Rollout: 30[0m
+[32mVal -- Epoch:200, loss:5.706548690795898, Rollout: 30[0m
+[32mVal -- Epoch:200, loss:5.703930854797363, Rollout: 30[0m
+[32mVal -- Epoch:200, loss:5.791049480438232, Rollout: 30[0m
+[32mVal -- Epoch:200, loss:5.645871639251709, Rollout: 30[0m
+[32mVal -- Epoch:200, loss:5.739035129547119, Rollout: 30[0m
+[32mVal -- Epoch:200, loss:5.688172817230225, Rollout: 30[0m
+Validation completed in 0.26130865812301635 mins, Total time: 308.2283419569333 mins
+Train -- Epoch:200, loss:5.646332740783691, Rollout:30
+Training epoch completed in 1.7471658984820049 mins, Total time: 309.9755165259043 mins
+Training epoch completed in 1.4959738771120707 mins, Total time: 311.47149136066434 mins
+Training epoch completed in 1.5388465444246928 mins, Total time: 313.0103399991989 mins
+Train -- Epoch:203, loss:5.661764621734619, Rollout:30
+Training epoch completed in 1.5452935258547464 mins, Total time: 314.55563453038536 mins
+Training epoch completed in 1.5575395385424295 mins, Total time: 316.1131751537323 mins
+[32mVal -- Epoch:205, loss:5.68099308013916, Rollout: 30[0m
+[32mVal -- Epoch:205, loss:5.688845157623291, Rollout: 30[0m
+[32mVal -- Epoch:205, loss:5.708439350128174, Rollout: 30[0m
+[32mVal -- Epoch:205, loss:5.697597026824951, Rollout: 30[0m
+[32mVal -- Epoch:205, loss:5.793036460876465, Rollout: 30[0m
+[32mVal -- Epoch:205, loss:5.644186496734619, Rollout: 30[0m
+[32mVal -- Epoch:205, loss:5.725142002105713, Rollout: 30[0m
+[32mVal -- Epoch:205, loss:5.684050559997559, Rollout: 30[0m
+Validation completed in 0.2570973793665568 mins, Total time: 316.3702735900879 mins
+Train -- Epoch:205, loss:5.587551593780518, Rollout:30
+Training epoch completed in 1.479209307829539 mins, Total time: 317.8495039025942 mins
+Training epoch completed in 1.6565538883209228 mins, Total time: 319.5060803214709 mins
+Training epoch completed in 1.5320916811625163 mins, Total time: 321.03817317883176 mins
+Train -- Epoch:208, loss:5.59041166305542, Rollout:30
+Training epoch completed in 1.5548302412033081 mins, Total time: 322.59300456444424 mins
+Training epoch completed in 1.5384748140970865 mins, Total time: 324.13148039976755 mins
+[32mVal -- Epoch:210, loss:5.6767730712890625, Rollout: 30[0m
+[32mVal -- Epoch:210, loss:5.695625305175781, Rollout: 30[0m
+[32mVal -- Epoch:210, loss:5.71942138671875, Rollout: 30[0m
+[32mVal -- Epoch:210, loss:5.706904411315918, Rollout: 30[0m
+[32mVal -- Epoch:210, loss:5.788491249084473, Rollout: 30[0m
+[32mVal -- Epoch:210, loss:5.647877216339111, Rollout: 30[0m
+[32mVal -- Epoch:210, loss:5.736007213592529, Rollout: 30[0m
+[32mVal -- Epoch:210, loss:5.688846111297607, Rollout: 30[0m
+Validation completed in 0.23627556959788004 mins, Total time: 324.3677569111188 mins
+Train -- Epoch:210, loss:5.578615665435791, Rollout:30
+Training epoch completed in 1.5380311369895936 mins, Total time: 325.905819773674 mins
+Training epoch completed in 1.5070653796195983 mins, Total time: 327.4128861069679 mins
+Training epoch completed in 1.5117366234461467 mins, Total time: 328.9246238191923 mins
+Train -- Epoch:213, loss:5.607789516448975, Rollout:30
+Training epoch completed in 1.5338195840517679 mins, Total time: 330.4584444920222 mins
+Training epoch completed in 1.5387290159861247 mins, Total time: 331.99717462062836 mins
+[32mVal -- Epoch:215, loss:5.676610946655273, Rollout: 30[0m
+[32mVal -- Epoch:215, loss:5.693168640136719, Rollout: 30[0m
+[32mVal -- Epoch:215, loss:5.715806007385254, Rollout: 30[0m
+[32mVal -- Epoch:215, loss:5.707086086273193, Rollout: 30[0m
+[32mVal -- Epoch:215, loss:5.797668933868408, Rollout: 30[0m
+[32mVal -- Epoch:215, loss:5.643820762634277, Rollout: 30[0m
+[32mVal -- Epoch:215, loss:5.735626697540283, Rollout: 30[0m
+[32mVal -- Epoch:215, loss:5.68220853805542, Rollout: 30[0m
+Validation completed in 0.31741178035736084 mins, Total time: 332.3145883878072 mins
+Train -- Epoch:215, loss:5.614170074462891, Rollout:30
+Training epoch completed in 1.597706639766693 mins, Total time: 333.91229603687924 mins
+Training epoch completed in 1.536660659313202 mins, Total time: 335.4489575823148 mins
+Training epoch completed in 1.6692850708961486 mins, Total time: 337.118267651399 mins
+Train -- Epoch:218, loss:5.561799049377441, Rollout:30
+Training epoch completed in 1.544927215576172 mins, Total time: 338.6631959279378 mins
+Training epoch completed in 1.5245231191317241 mins, Total time: 340.1877201040586 mins
+[32mVal -- Epoch:220, loss:5.68366003036499, Rollout: 30[0m
+[32mVal -- Epoch:220, loss:5.701231956481934, Rollout: 30[0m
+[32mVal -- Epoch:220, loss:5.7184247970581055, Rollout: 30[0m
+[32mVal -- Epoch:220, loss:5.7098469734191895, Rollout: 30[0m
+[32mVal -- Epoch:220, loss:5.803869247436523, Rollout: 30[0m
+[32mVal -- Epoch:220, loss:5.650947093963623, Rollout: 30[0m
+[32mVal -- Epoch:220, loss:5.7453131675720215, Rollout: 30[0m
+[32mVal -- Epoch:220, loss:5.691691875457764, Rollout: 30[0m
+Validation completed in 0.23885871569315592 mins, Total time: 340.4265799323718 mins
+Train -- Epoch:220, loss:5.651950836181641, Rollout:30
+Training epoch completed in 1.5274304032325745 mins, Total time: 341.9540193200111 mins
+Training epoch completed in 1.610509208838145 mins, Total time: 343.5645313342412 mins
+Training epoch completed in 1.5168314218521117 mins, Total time: 345.081364651521 mins
+Train -- Epoch:223, loss:5.575746536254883, Rollout:30
+Training epoch completed in 1.4624890486399333 mins, Total time: 346.54385475715003 mins
+Training epoch completed in 1.535438108444214 mins, Total time: 348.0792947053909 mins
+[32mVal -- Epoch:225, loss:5.688225746154785, Rollout: 30[0m
+[32mVal -- Epoch:225, loss:5.703582286834717, Rollout: 30[0m
+[32mVal -- Epoch:225, loss:5.721104621887207, Rollout: 30[0m
+[32mVal -- Epoch:225, loss:5.700841903686523, Rollout: 30[0m
+[32mVal -- Epoch:225, loss:5.7909626960754395, Rollout: 30[0m
+[32mVal -- Epoch:225, loss:5.651162147521973, Rollout: 30[0m
+[32mVal -- Epoch:225, loss:5.736034393310547, Rollout: 30[0m
+[32mVal -- Epoch:225, loss:5.691331386566162, Rollout: 30[0m
+Validation completed in 0.23961997032165527 mins, Total time: 348.318916507562 mins
+Train -- Epoch:225, loss:5.623961448669434, Rollout:30
+Training epoch completed in 1.6008668144543965 mins, Total time: 349.9198108434677 mins
+Training epoch completed in 1.5018473426500956 mins, Total time: 351.42167010704674 mins
+Training epoch completed in 1.5055286645889283 mins, Total time: 352.92720074653624 mins
+Train -- Epoch:228, loss:5.612298488616943, Rollout:30
+Training epoch completed in 1.519594164689382 mins, Total time: 354.44681392510734 mins
+Training epoch completed in 1.5752894043922425 mins, Total time: 356.0221053401629 mins
+[32mVal -- Epoch:230, loss:5.678088188171387, Rollout: 30[0m
+[32mVal -- Epoch:230, loss:5.700079441070557, Rollout: 30[0m
+[32mVal -- Epoch:230, loss:5.709224224090576, Rollout: 30[0m
+[32mVal -- Epoch:230, loss:5.699948310852051, Rollout: 30[0m
+[32mVal -- Epoch:230, loss:5.803720951080322, Rollout: 30[0m
+[32mVal -- Epoch:230, loss:5.640869140625, Rollout: 30[0m
+[32mVal -- Epoch:230, loss:5.733776092529297, Rollout: 30[0m
+[32mVal -- Epoch:230, loss:5.690011978149414, Rollout: 30[0m
+Validation completed in 0.24003254969914753 mins, Total time: 356.26213971773785 mins
+Train -- Epoch:230, loss:5.596505165100098, Rollout:30
+Training epoch completed in 1.535105335712433 mins, Total time: 357.7972768266996 mins
+Training epoch completed in 1.5429136554400127 mins, Total time: 359.3401913483938 mins
+Training epoch completed in 1.5366811156272888 mins, Total time: 360.87687352498375 mins
+Train -- Epoch:233, loss:5.629837512969971, Rollout:30
+Training epoch completed in 1.5589095552762349 mins, Total time: 362.4357850551605 mins
+Training epoch completed in 1.6145785331726075 mins, Total time: 364.0503646294276 mins
+[32mVal -- Epoch:235, loss:5.681834697723389, Rollout: 30[0m
+[32mVal -- Epoch:235, loss:5.704535007476807, Rollout: 30[0m
+[32mVal -- Epoch:235, loss:5.706107139587402, Rollout: 30[0m
+[32mVal -- Epoch:235, loss:5.692785739898682, Rollout: 30[0m
+[32mVal -- Epoch:235, loss:5.803145408630371, Rollout: 30[0m
+[32mVal -- Epoch:235, loss:5.6417927742004395, Rollout: 30[0m
+[32mVal -- Epoch:235, loss:5.737234115600586, Rollout: 30[0m
+[32mVal -- Epoch:235, loss:5.686200141906738, Rollout: 30[0m
+Validation completed in 0.26126603682835897 mins, Total time: 364.31163248618446 mins
+Train -- Epoch:235, loss:5.627943992614746, Rollout:30
+Training epoch completed in 1.5167531887690227 mins, Total time: 365.8283988237381 mins
+Training epoch completed in 1.555079185962677 mins, Total time: 367.3834803700447 mins
+Training epoch completed in 1.5104954997698465 mins, Total time: 368.89397802352903 mins
+Train -- Epoch:238, loss:5.571292877197266, Rollout:30
+Training epoch completed in 1.520763111114502 mins, Total time: 370.4147432009379 mins
+Training epoch completed in 1.6204325119654337 mins, Total time: 372.03517767588295 mins
+[32mVal -- Epoch:240, loss:5.685016632080078, Rollout: 30[0m
+[32mVal -- Epoch:240, loss:5.709895610809326, Rollout: 30[0m
+[32mVal -- Epoch:240, loss:5.718118667602539, Rollout: 30[0m
+[32mVal -- Epoch:240, loss:5.700722694396973, Rollout: 30[0m
+[32mVal -- Epoch:240, loss:5.8022565841674805, Rollout: 30[0m
+[32mVal -- Epoch:240, loss:5.644870758056641, Rollout: 30[0m
+[32mVal -- Epoch:240, loss:5.751658916473389, Rollout: 30[0m
+[32mVal -- Epoch:240, loss:5.693735599517822, Rollout: 30[0m
+Validation completed in 0.2851704756418864 mins, Total time: 372.3203492283821 mins
+Train -- Epoch:240, loss:5.594810962677002, Rollout:30
+Training epoch completed in 1.6794777949651083 mins, Total time: 373.9998513221741 mins
+Training epoch completed in 1.5500089486440023 mins, Total time: 375.5498612165451 mins
+Training epoch completed in 1.5941768288612366 mins, Total time: 377.1440391421318 mins
+Train -- Epoch:243, loss:5.632638454437256, Rollout:30
+Training epoch completed in 1.5599308967590333 mins, Total time: 378.7039719661077 mins
+Training epoch completed in 1.503850555419922 mins, Total time: 380.2078435222308 mins
+[32mVal -- Epoch:245, loss:5.677859783172607, Rollout: 30[0m
+[32mVal -- Epoch:245, loss:5.706920623779297, Rollout: 30[0m
+[32mVal -- Epoch:245, loss:5.717707633972168, Rollout: 30[0m
+[32mVal -- Epoch:245, loss:5.706719875335693, Rollout: 30[0m
+[32mVal -- Epoch:245, loss:5.807065963745117, Rollout: 30[0m
+[32mVal -- Epoch:245, loss:5.641751289367676, Rollout: 30[0m
+[32mVal -- Epoch:245, loss:5.730501651763916, Rollout: 30[0m
+[32mVal -- Epoch:245, loss:5.68703031539917, Rollout: 30[0m
+Validation completed in 0.23527419964472454 mins, Total time: 380.4431308269501 mins
+Train -- Epoch:245, loss:5.625300407409668, Rollout:30
+Training epoch completed in 1.5659073789914448 mins, Total time: 382.00906683206557 mins
+Training epoch completed in 1.7612860083580018 mins, Total time: 383.7703665137291 mins
+Training epoch completed in 1.5390515128771465 mins, Total time: 385.30941990216576 mins
+Train -- Epoch:248, loss:5.592411518096924, Rollout:30
+Training epoch completed in 1.6462510625521343 mins, Total time: 386.9556729276975 mins
+Training epoch completed in 1.5230958620707193 mins, Total time: 388.47877086400985 mins
+[32mVal -- Epoch:250, loss:5.677298545837402, Rollout: 30[0m
+[32mVal -- Epoch:250, loss:5.712764263153076, Rollout: 30[0m
+[32mVal -- Epoch:250, loss:5.717771530151367, Rollout: 30[0m
+[32mVal -- Epoch:250, loss:5.705394268035889, Rollout: 30[0m
+[32mVal -- Epoch:250, loss:5.7935919761657715, Rollout: 30[0m
+[32mVal -- Epoch:250, loss:5.65123987197876, Rollout: 30[0m
+[32mVal -- Epoch:250, loss:5.7347331047058105, Rollout: 30[0m
+[32mVal -- Epoch:250, loss:5.690818786621094, Rollout: 30[0m
+Validation completed in 0.24005912144978842 mins, Total time: 388.7188514272372 mins
+Train -- Epoch:250, loss:5.636361122131348, Rollout:30
+Training epoch completed in 1.6098673343658447 mins, Total time: 390.32874608834584 mins
+Training epoch completed in 1.5283035318056741 mins, Total time: 391.8570754567782 mins
+Training epoch completed in 1.578722027937571 mins, Total time: 393.43581478595735 mins
+Train -- Epoch:253, loss:5.661452770233154, Rollout:30
+Training epoch completed in 1.7076439023017884 mins, Total time: 395.14348922173184 mins
+Training epoch completed in 1.6022330164909362 mins, Total time: 396.74572334686917 mins
+[32mVal -- Epoch:255, loss:5.680934429168701, Rollout: 30[0m
+[32mVal -- Epoch:255, loss:5.693582534790039, Rollout: 30[0m
+[32mVal -- Epoch:255, loss:5.707017421722412, Rollout: 30[0m
+[32mVal -- Epoch:255, loss:5.698538303375244, Rollout: 30[0m
+[32mVal -- Epoch:255, loss:5.807886123657227, Rollout: 30[0m
+[32mVal -- Epoch:255, loss:5.6486029624938965, Rollout: 30[0m
+[32mVal -- Epoch:255, loss:5.735621929168701, Rollout: 30[0m
+[32mVal -- Epoch:255, loss:5.686957359313965, Rollout: 30[0m
+Validation completed in 0.23869572480519613 mins, Total time: 396.9844201087952 mins
+Train -- Epoch:255, loss:5.604213237762451, Rollout:30
+Training epoch completed in 1.5667060057322184 mins, Total time: 398.5511395374934 mins
+Training epoch completed in 1.6087544083595275 mins, Total time: 400.15989512205124 mins
+Training epoch completed in 1.5016865491867066 mins, Total time: 401.6615827560425 mins
+Train -- Epoch:258, loss:5.610728740692139, Rollout:30
+Training epoch completed in 1.5591981172561646 mins, Total time: 403.22078197399776 mins
+Training epoch completed in 1.5471861481666564 mins, Total time: 404.7679691592852 mins
+[32mVal -- Epoch:260, loss:5.675545692443848, Rollout: 30[0m
+[32mVal -- Epoch:260, loss:5.716471195220947, Rollout: 30[0m
+[32mVal -- Epoch:260, loss:5.709959030151367, Rollout: 30[0m
+[32mVal -- Epoch:260, loss:5.715101718902588, Rollout: 30[0m
+[32mVal -- Epoch:260, loss:5.8010172843933105, Rollout: 30[0m
+[32mVal -- Epoch:260, loss:5.660399436950684, Rollout: 30[0m
+[32mVal -- Epoch:260, loss:5.734658241271973, Rollout: 30[0m
+[32mVal -- Epoch:260, loss:5.689874649047852, Rollout: 30[0m
+Validation completed in 0.23796464999516806 mins, Total time: 405.00593486229576 mins
+Train -- Epoch:260, loss:5.592213153839111, Rollout:30
+Training epoch completed in 1.5950490236282349 mins, Total time: 406.60098513762154 mins
+Training epoch completed in 1.6383506337801614 mins, Total time: 408.23933786153793 mins
+Training epoch completed in 1.6657798369725545 mins, Total time: 409.9051305890083 mins
+Train -- Epoch:263, loss:5.576388359069824, Rollout:30
+Training epoch completed in 1.63758944272995 mins, Total time: 411.54272157351176 mins
+Training epoch completed in 1.6731071909268698 mins, Total time: 413.2158308823903 mins
+[32mVal -- Epoch:265, loss:5.678405284881592, Rollout: 30[0m
+[32mVal -- Epoch:265, loss:5.70654296875, Rollout: 30[0m
+[32mVal -- Epoch:265, loss:5.708990573883057, Rollout: 30[0m
+[32mVal -- Epoch:265, loss:5.7030158042907715, Rollout: 30[0m
+[32mVal -- Epoch:265, loss:5.8001275062561035, Rollout: 30[0m
+[32mVal -- Epoch:265, loss:5.642131805419922, Rollout: 30[0m
+[32mVal -- Epoch:265, loss:5.741250514984131, Rollout: 30[0m
+[32mVal -- Epoch:265, loss:5.692013263702393, Rollout: 30[0m
+Validation completed in 0.27032941579818726 mins, Total time: 413.48616131146747 mins
+Train -- Epoch:265, loss:5.605739593505859, Rollout:30
+Training epoch completed in 1.6394125858942667 mins, Total time: 415.12560092608135 mins
+Training epoch completed in 1.7297703742980957 mins, Total time: 416.85538976192476 mins
+Train -- Epoch:267, loss:5.615399360656738, Rollout:30
+Training epoch completed in 1.714213490486145 mins, Total time: 418.5696306069692 mins
+Training epoch completed in 1.6760286132494608 mins, Total time: 420.2456601778666 mins
+Training epoch completed in 1.7190818826357523 mins, Total time: 421.96474314133326 mins
+[32mVal -- Epoch:270, loss:5.671555995941162, Rollout: 30[0m
+[32mVal -- Epoch:270, loss:5.693706512451172, Rollout: 30[0m
+[32mVal -- Epoch:270, loss:5.719484806060791, Rollout: 30[0m
+[32mVal -- Epoch:270, loss:5.692407608032227, Rollout: 30[0m
+[32mVal -- Epoch:270, loss:5.801914691925049, Rollout: 30[0m
+[32mVal -- Epoch:270, loss:5.648176193237305, Rollout: 30[0m
+[32mVal -- Epoch:270, loss:5.737088203430176, Rollout: 30[0m
+[32mVal -- Epoch:270, loss:5.693804740905762, Rollout: 30[0m
+Validation completed in 0.2558403571446737 mins, Total time: 422.2205845872561 mins
+Train -- Epoch:270, loss:5.5766682624816895, Rollout:30
+Training epoch completed in 1.7034705042839051 mins, Total time: 423.9240802407265 mins
+Training epoch completed in 1.7480713287989298 mins, Total time: 425.6721544822057 mins
+Train -- Epoch:272, loss:5.608659744262695, Rollout:30
+Training epoch completed in 1.6483492334683736 mins, Total time: 427.3205048799515 mins
+Training epoch completed in 1.663796063264211 mins, Total time: 428.9843022505442 mins
+Training epoch completed in 1.7009953180948894 mins, Total time: 430.68532686630886 mins
+[32mVal -- Epoch:275, loss:5.68397855758667, Rollout: 30[0m
+[32mVal -- Epoch:275, loss:5.706358432769775, Rollout: 30[0m
+[32mVal -- Epoch:275, loss:5.713021278381348, Rollout: 30[0m
+[32mVal -- Epoch:275, loss:5.702612400054932, Rollout: 30[0m
+[32mVal -- Epoch:275, loss:5.807314872741699, Rollout: 30[0m
+[32mVal -- Epoch:275, loss:5.654469966888428, Rollout: 30[0m
+[32mVal -- Epoch:275, loss:5.743662357330322, Rollout: 30[0m
+[32mVal -- Epoch:275, loss:5.6957688331604, Rollout: 30[0m
+Validation completed in 0.2658589680989583 mins, Total time: 430.95119738578796 mins
+Train -- Epoch:275, loss:5.6363630294799805, Rollout:30
+Training epoch completed in 1.6661123951276144 mins, Total time: 432.61731954018273 mins
+Training epoch completed in 1.6286999742190043 mins, Total time: 434.24602074225743 mins
+Train -- Epoch:277, loss:5.588830947875977, Rollout:30
+Training epoch completed in 1.6600613355636598 mins, Total time: 435.9060840447744 mins
+Training epoch completed in 1.737836758295695 mins, Total time: 437.643921816349 mins
+Training epoch completed in 1.6652196844418843 mins, Total time: 439.3091840863228 mins
+[32mVal -- Epoch:280, loss:5.676326274871826, Rollout: 30[0m
+[32mVal -- Epoch:280, loss:5.705053806304932, Rollout: 30[0m
+[32mVal -- Epoch:280, loss:5.708841800689697, Rollout: 30[0m
+[32mVal -- Epoch:280, loss:5.714131832122803, Rollout: 30[0m
+[32mVal -- Epoch:280, loss:5.80235481262207, Rollout: 30[0m
+[32mVal -- Epoch:280, loss:5.653761863708496, Rollout: 30[0m
+[32mVal -- Epoch:280, loss:5.741784572601318, Rollout: 30[0m
+[32mVal -- Epoch:280, loss:5.695342063903809, Rollout: 30[0m
+Validation completed in 0.24927167892456054 mins, Total time: 439.5584577322006 mins
+Train -- Epoch:280, loss:5.545066833496094, Rollout:30
+Training epoch completed in 1.6988143523534138 mins, Total time: 441.25729490121205 mins
+Training epoch completed in 1.7555165926615397 mins, Total time: 443.0128136515617 mins
+Train -- Epoch:282, loss:5.616325855255127, Rollout:30
+Training epoch completed in 1.6564180771509807 mins, Total time: 444.66924208402634 mins
+Training epoch completed in 1.657685939470927 mins, Total time: 446.3269292076429 mins
+Training epoch completed in 1.6775709390640259 mins, Total time: 448.0045022368431 mins
+[32mVal -- Epoch:285, loss:5.671269416809082, Rollout: 30[0m
+[32mVal -- Epoch:285, loss:5.71444034576416, Rollout: 30[0m
+[32mVal -- Epoch:285, loss:5.715498447418213, Rollout: 30[0m
+[32mVal -- Epoch:285, loss:5.70814323425293, Rollout: 30[0m
+[32mVal -- Epoch:285, loss:5.808102130889893, Rollout: 30[0m
+[32mVal -- Epoch:285, loss:5.645634651184082, Rollout: 30[0m
+[32mVal -- Epoch:285, loss:5.736813545227051, Rollout: 30[0m
+[32mVal -- Epoch:285, loss:5.691075325012207, Rollout: 30[0m
+Validation completed in 0.24822875261306762 mins, Total time: 448.25273292859396 mins
+Train -- Epoch:285, loss:5.61123514175415, Rollout:30
+Training epoch completed in 1.678238038221995 mins, Total time: 449.93100332021714 mins
+Training epoch completed in 1.6963654279708862 mins, Total time: 451.6273709456126 mins
+Train -- Epoch:287, loss:5.588228702545166, Rollout:30
+Training epoch completed in 1.6950114607810973 mins, Total time: 453.322383638223 mins
+Training epoch completed in 1.694164510567983 mins, Total time: 455.0165492653847 mins
+Training epoch completed in 1.6998700300852458 mins, Total time: 456.71642042795816 mins
+[32mVal -- Epoch:290, loss:5.681980609893799, Rollout: 30[0m
+[32mVal -- Epoch:290, loss:5.706589221954346, Rollout: 30[0m
+[32mVal -- Epoch:290, loss:5.715818405151367, Rollout: 30[0m
+[32mVal -- Epoch:290, loss:5.6999406814575195, Rollout: 30[0m
+[32mVal -- Epoch:290, loss:5.800553321838379, Rollout: 30[0m
+[32mVal -- Epoch:290, loss:5.645839214324951, Rollout: 30[0m
+[32mVal -- Epoch:290, loss:5.726397514343262, Rollout: 30[0m
+[32mVal -- Epoch:290, loss:5.694509029388428, Rollout: 30[0m
+Validation completed in 0.24842021067937214 mins, Total time: 456.9648426572482 mins
+Train -- Epoch:290, loss:5.608341217041016, Rollout:30
+Training epoch completed in 1.7013357480367024 mins, Total time: 458.6662013173103 mins
+Training epoch completed in 1.7059651811917622 mins, Total time: 460.3721891482671 mins
+Train -- Epoch:292, loss:5.624232769012451, Rollout:30
+Training epoch completed in 1.7465004404385884 mins, Total time: 462.11870299577714 mins
+Training epoch completed in 1.862381120522817 mins, Total time: 463.98109780550004 mins
+Training epoch completed in 1.6948530157407125 mins, Total time: 465.6759523232778 mins
+[32mVal -- Epoch:295, loss:5.6763505935668945, Rollout: 30[0m
+[32mVal -- Epoch:295, loss:5.7059125900268555, Rollout: 30[0m
+[32mVal -- Epoch:295, loss:5.710545539855957, Rollout: 30[0m
+[32mVal -- Epoch:295, loss:5.719526290893555, Rollout: 30[0m
+[32mVal -- Epoch:295, loss:5.804895877838135, Rollout: 30[0m
+[32mVal -- Epoch:295, loss:5.653163433074951, Rollout: 30[0m
+[32mVal -- Epoch:295, loss:5.73585319519043, Rollout: 30[0m
+[32mVal -- Epoch:295, loss:5.700563907623291, Rollout: 30[0m
+Validation completed in 0.24622550010681152 mins, Total time: 465.92217894792554 mins
+Train -- Epoch:295, loss:5.585498332977295, Rollout:30
+Training epoch completed in 1.7548766692479452 mins, Total time: 467.6770854791005 mins
+Training epoch completed in 1.647989281018575 mins, Total time: 469.3250769495964 mins
+Train -- Epoch:297, loss:5.575334072113037, Rollout:30
+Training epoch completed in 1.654819623629252 mins, Total time: 470.97991394996643 mins
+Training epoch completed in 1.6600681781768798 mins, Total time: 472.6399972756704 mins
+Training epoch completed in 1.7051369786262511 mins, Total time: 474.34513640006384 mins
+[32mVal -- Epoch:300, loss:5.68165922164917, Rollout: 30[0m
+[32mVal -- Epoch:300, loss:5.707792282104492, Rollout: 30[0m
+[32mVal -- Epoch:300, loss:5.721246242523193, Rollout: 30[0m
+[32mVal -- Epoch:300, loss:5.701910972595215, Rollout: 30[0m
+[32mVal -- Epoch:300, loss:5.795896053314209, Rollout: 30[0m
+[32mVal -- Epoch:300, loss:5.650183200836182, Rollout: 30[0m
+[32mVal -- Epoch:300, loss:5.737951278686523, Rollout: 30[0m
+[32mVal -- Epoch:300, loss:5.691154956817627, Rollout: 30[0m
+Validation completed in 0.2555727203687032 mins, Total time: 474.6007354338964 mins
+Train -- Epoch:300, loss:5.561966419219971, Rollout:30
+Training epoch completed in 1.721722141901652 mins, Total time: 476.32247846921285 mins
+Training epoch completed in 1.6894255717595419 mins, Total time: 478.01190522114433 mins
+Train -- Epoch:302, loss:5.602934837341309, Rollout:30
+Training epoch completed in 1.6701344490051269 mins, Total time: 479.6820418159167 mins
+Training epoch completed in 1.6611299594243367 mins, Total time: 481.34317402044934 mins
+Training epoch completed in 1.6310557921727498 mins, Total time: 482.9742310285568 mins
+[32mVal -- Epoch:305, loss:5.676526069641113, Rollout: 30[0m
+[32mVal -- Epoch:305, loss:5.709224700927734, Rollout: 30[0m
+[32mVal -- Epoch:305, loss:5.714723110198975, Rollout: 30[0m
+[32mVal -- Epoch:305, loss:5.711727619171143, Rollout: 30[0m
+[32mVal -- Epoch:305, loss:5.7975568771362305, Rollout: 30[0m
+[32mVal -- Epoch:305, loss:5.649510383605957, Rollout: 30[0m
+[32mVal -- Epoch:305, loss:5.740786552429199, Rollout: 30[0m
+[32mVal -- Epoch:305, loss:5.692952632904053, Rollout: 30[0m
+Validation completed in 0.27181830008824664 mins, Total time: 483.2460710247358 mins
+Train -- Epoch:305, loss:5.578219413757324, Rollout:30
+Training epoch completed in 1.6480225205421448 mins, Total time: 484.8941177368164 mins
+Training epoch completed in 1.6714107950528463 mins, Total time: 486.5655306061109 mins
+Train -- Epoch:307, loss:5.623239040374756, Rollout:30
+Training epoch completed in 1.67525608142217 mins, Total time: 488.24081028699874 mins
+Training epoch completed in 1.6772661487261453 mins, Total time: 489.9180777311325 mins
+Training epoch completed in 1.66909255584081 mins, Total time: 491.58717230161034 mins
+[32mVal -- Epoch:310, loss:5.6669535636901855, Rollout: 30[0m
+[32mVal -- Epoch:310, loss:5.703734397888184, Rollout: 30[0m
+[32mVal -- Epoch:310, loss:5.704005718231201, Rollout: 30[0m
+[32mVal -- Epoch:310, loss:5.703770160675049, Rollout: 30[0m
+[32mVal -- Epoch:310, loss:5.808504104614258, Rollout: 30[0m
+[32mVal -- Epoch:310, loss:5.641911029815674, Rollout: 30[0m
+[32mVal -- Epoch:310, loss:5.739965915679932, Rollout: 30[0m
+[32mVal -- Epoch:310, loss:5.687777519226074, Rollout: 30[0m
+Validation completed in 0.29536804755528767 mins, Total time: 491.88254144986473 mins
+Train -- Epoch:310, loss:5.634862899780273, Rollout:30
+Training epoch completed in 1.7417227784792582 mins, Total time: 493.6242780923843 mins
+Training epoch completed in 1.706805980205536 mins, Total time: 495.33108611504235 mins
+Train -- Epoch:312, loss:5.567579746246338, Rollout:30
+Training epoch completed in 1.7334053635597229 mins, Total time: 497.06450951894124 mins
+Training epoch completed in 1.719584874312083 mins, Total time: 498.7840962966283 mins
+Training epoch completed in 1.6929074962933859 mins, Total time: 500.47700523932775 mins
+[32mVal -- Epoch:315, loss:5.682706356048584, Rollout: 30[0m
+[32mVal -- Epoch:315, loss:5.711306571960449, Rollout: 30[0m
+[32mVal -- Epoch:315, loss:5.722535133361816, Rollout: 30[0m
+[32mVal -- Epoch:315, loss:5.709397315979004, Rollout: 30[0m
+[32mVal -- Epoch:315, loss:5.8093156814575195, Rollout: 30[0m
+[32mVal -- Epoch:315, loss:5.642086505889893, Rollout: 30[0m
+[32mVal -- Epoch:315, loss:5.745666027069092, Rollout: 30[0m
+[32mVal -- Epoch:315, loss:5.686211585998535, Rollout: 30[0m
+Validation completed in 0.25661434332529703 mins, Total time: 500.7336207906405 mins
+Train -- Epoch:315, loss:5.618816375732422, Rollout:30
+Training epoch completed in 1.6672235449155173 mins, Total time: 502.40087625583016 mins
+Training epoch completed in 1.7897595604260763 mins, Total time: 504.190639547507 mins
+Train -- Epoch:317, loss:5.607087135314941, Rollout:30
+Training epoch completed in 1.7148795207341512 mins, Total time: 505.90552028417585 mins
+Training epoch completed in 1.6838483730951945 mins, Total time: 507.5893917719523 mins
+Training epoch completed in 1.730244223276774 mins, Total time: 509.3196381688118 mins
+[32mVal -- Epoch:320, loss:5.67957067489624, Rollout: 30[0m
+[32mVal -- Epoch:320, loss:5.705520153045654, Rollout: 30[0m
+[32mVal -- Epoch:320, loss:5.719472885131836, Rollout: 30[0m
+[32mVal -- Epoch:320, loss:5.711679458618164, Rollout: 30[0m
+[32mVal -- Epoch:320, loss:5.806666851043701, Rollout: 30[0m
+[32mVal -- Epoch:320, loss:5.644057750701904, Rollout: 30[0m
+[32mVal -- Epoch:320, loss:5.739798069000244, Rollout: 30[0m
+[32mVal -- Epoch:320, loss:5.68595552444458, Rollout: 30[0m
+Validation completed in 0.2503297964731852 mins, Total time: 509.56998083591463 mins
+Train -- Epoch:320, loss:5.549286365509033, Rollout:30
+Training epoch completed in 1.6840108394622804 mins, Total time: 511.2540163040161 mins
+Training epoch completed in 1.6756445368131 mins, Total time: 512.929661945502 mins
+Train -- Epoch:322, loss:5.579208850860596, Rollout:30
+Training epoch completed in 1.6854824503262837 mins, Total time: 514.6151465813319 mins
+Training epoch completed in 1.6527006347974142 mins, Total time: 516.2678483764331 mins
+Training epoch completed in 1.6937727173169455 mins, Total time: 517.9616232156753 mins
+[32mVal -- Epoch:325, loss:5.670164585113525, Rollout: 30[0m
+[32mVal -- Epoch:325, loss:5.719213008880615, Rollout: 30[0m
+[32mVal -- Epoch:325, loss:5.706348896026611, Rollout: 30[0m
+[32mVal -- Epoch:325, loss:5.710002899169922, Rollout: 30[0m
+[32mVal -- Epoch:325, loss:5.80116605758667, Rollout: 30[0m
+[32mVal -- Epoch:325, loss:5.653970241546631, Rollout: 30[0m
+[32mVal -- Epoch:325, loss:5.74656343460083, Rollout: 30[0m
+[32mVal -- Epoch:325, loss:5.6960530281066895, Rollout: 30[0m
+Validation completed in 0.2784676750500997 mins, Total time: 518.2400928258896 mins
+Train -- Epoch:325, loss:5.624248027801514, Rollout:30
+Training epoch completed in 1.6870126724243164 mins, Total time: 519.9271168708801 mins
+Training epoch completed in 1.735947851339976 mins, Total time: 521.6630662997563 mins
+Train -- Epoch:327, loss:5.634498119354248, Rollout:30
+Training epoch completed in 1.7536470572153726 mins, Total time: 523.4167145609856 mins
+Training epoch completed in 1.761190152168274 mins, Total time: 525.1779069224993 mins
+Training epoch completed in 1.7342909455299378 mins, Total time: 526.9122016270956 mins
+[32mVal -- Epoch:330, loss:5.683203220367432, Rollout: 30[0m
+[32mVal -- Epoch:330, loss:5.7114033699035645, Rollout: 30[0m
+[32mVal -- Epoch:330, loss:5.721873760223389, Rollout: 30[0m
+[32mVal -- Epoch:330, loss:5.711711883544922, Rollout: 30[0m
+[32mVal -- Epoch:330, loss:5.812849521636963, Rollout: 30[0m
+[32mVal -- Epoch:330, loss:5.65669059753418, Rollout: 30[0m
+[32mVal -- Epoch:330, loss:5.744513034820557, Rollout: 30[0m
+[32mVal -- Epoch:330, loss:5.679842472076416, Rollout: 30[0m
+Validation completed in 0.246328600247701 mins, Total time: 527.1585431377093 mins
+Train -- Epoch:330, loss:5.560120582580566, Rollout:30
+Training epoch completed in 1.698021380106608 mins, Total time: 528.8565830469131 mins
+Training epoch completed in 1.816098654270172 mins, Total time: 530.6727015813192 mins
+Train -- Epoch:332, loss:5.663327217102051, Rollout:30
+Training epoch completed in 1.68948073387146 mins, Total time: 532.3621838212014 mins
+Training epoch completed in 1.732894519964854 mins, Total time: 534.0950952967008 mins
+Train -- Epoch:334, loss:5.634613037109375, Rollout:30
+Training epoch completed in 1.6969834446907044 mins, Total time: 535.7920800089836 mins
+[32mVal -- Epoch:335, loss:5.676105499267578, Rollout: 30[0m
+[32mVal -- Epoch:335, loss:5.712767124176025, Rollout: 30[0m
+[32mVal -- Epoch:335, loss:5.724649906158447, Rollout: 30[0m
+[32mVal -- Epoch:335, loss:5.711217403411865, Rollout: 30[0m
+[32mVal -- Epoch:335, loss:5.804520130157471, Rollout: 30[0m
+[32mVal -- Epoch:335, loss:5.654048919677734, Rollout: 30[0m
+[32mVal -- Epoch:335, loss:5.745007038116455, Rollout: 30[0m
+[32mVal -- Epoch:335, loss:5.678690433502197, Rollout: 30[0m
+Validation completed in 0.2832144339879354 mins, Total time: 536.0753097812335 mins
+Training epoch completed in 1.7758593201637267 mins, Total time: 537.8511781255404 mins
+Training epoch completed in 1.7539172768592834 mins, Total time: 539.6051123817762 mins
+Train -- Epoch:337, loss:5.602310657501221, Rollout:30
+Training epoch completed in 1.6748989582061768 mins, Total time: 541.2800212224324 mins
+Training epoch completed in 1.705986225605011 mins, Total time: 542.9860253294308 mins
+Train -- Epoch:339, loss:5.629174709320068, Rollout:30
+Training epoch completed in 1.6545735359191895 mins, Total time: 544.6406213442484 mins
+[32mVal -- Epoch:340, loss:5.672760009765625, Rollout: 30[0m
+[32mVal -- Epoch:340, loss:5.709742546081543, Rollout: 30[0m
+[32mVal -- Epoch:340, loss:5.7021403312683105, Rollout: 30[0m
+[32mVal -- Epoch:340, loss:5.704105854034424, Rollout: 30[0m
+[32mVal -- Epoch:340, loss:5.808225631713867, Rollout: 30[0m
+[32mVal -- Epoch:340, loss:5.652181625366211, Rollout: 30[0m
+[32mVal -- Epoch:340, loss:5.7362213134765625, Rollout: 30[0m
+[32mVal -- Epoch:340, loss:5.689526557922363, Rollout: 30[0m
+Validation completed in 0.25105441411336266 mins, Total time: 544.8916770776112 mins
+Training epoch completed in 1.7106651544570923 mins, Total time: 546.6023510773977 mins
+Training epoch completed in 1.6609543244043985 mins, Total time: 548.2633065859477 mins
+Train -- Epoch:342, loss:5.612448215484619, Rollout:30
+Training epoch completed in 1.6961231589317323 mins, Total time: 549.9594309806823 mins
+Training epoch completed in 1.6326218644777934 mins, Total time: 551.5920539697012 mins
+Train -- Epoch:344, loss:5.59119176864624, Rollout:30
+Training epoch completed in 1.728012994925181 mins, Total time: 553.3200691739718 mins
+[32mVal -- Epoch:345, loss:5.686448097229004, Rollout: 30[0m
+[32mVal -- Epoch:345, loss:5.7201032638549805, Rollout: 30[0m
+[32mVal -- Epoch:345, loss:5.7175612449646, Rollout: 30[0m
+[32mVal -- Epoch:345, loss:5.710585117340088, Rollout: 30[0m
+[32mVal -- Epoch:345, loss:5.812524318695068, Rollout: 30[0m
+[32mVal -- Epoch:345, loss:5.654819965362549, Rollout: 30[0m
+[32mVal -- Epoch:345, loss:5.744520664215088, Rollout: 30[0m
+[32mVal -- Epoch:345, loss:5.691413879394531, Rollout: 30[0m
+Validation completed in 0.2488399346669515 mins, Total time: 553.568910074234 mins
+Training epoch completed in 1.6533292849858603 mins, Total time: 555.2222488045693 mins
+Training epoch completed in 1.7004831790924073 mins, Total time: 556.9227362036705 mins
+Train -- Epoch:347, loss:5.611329555511475, Rollout:30
+Training epoch completed in 1.7245248158772786 mins, Total time: 558.6472629547119 mins
+Training epoch completed in 1.6397705872853596 mins, Total time: 560.2870355804761 mins
+Train -- Epoch:349, loss:5.716105937957764, Rollout:30
+Training epoch completed in 1.5613976836204528 mins, Total time: 561.8484345157941 mins
+[32mVal -- Epoch:350, loss:5.689205169677734, Rollout: 30[0m
+[32mVal -- Epoch:350, loss:5.714627265930176, Rollout: 30[0m
+[32mVal -- Epoch:350, loss:5.721866130828857, Rollout: 30[0m
+[32mVal -- Epoch:350, loss:5.707916259765625, Rollout: 30[0m
+[32mVal -- Epoch:350, loss:5.817660331726074, Rollout: 30[0m
+[32mVal -- Epoch:350, loss:5.655003547668457, Rollout: 30[0m
+[32mVal -- Epoch:350, loss:5.744072914123535, Rollout: 30[0m
+[32mVal -- Epoch:350, loss:5.691877365112305, Rollout: 30[0m
+Validation completed in 0.2410269816716512 mins, Total time: 562.0894626061122 mins
+Training epoch completed in 1.6620147148768107 mins, Total time: 563.751485645771 mins
+Training epoch completed in 1.610122529665629 mins, Total time: 565.3616093039512 mins
+Train -- Epoch:352, loss:5.600480556488037, Rollout:30
+Training epoch completed in 1.6220236619313557 mins, Total time: 566.9836349368095 mins
+Training epoch completed in 1.5544585188229878 mins, Total time: 568.5380945324898 mins
+Train -- Epoch:354, loss:5.603131294250488, Rollout:30
+Training epoch completed in 1.569091248512268 mins, Total time: 570.1071868101756 mins
+[32mVal -- Epoch:355, loss:5.680053234100342, Rollout: 30[0m
+[32mVal -- Epoch:355, loss:5.708245754241943, Rollout: 30[0m
+[32mVal -- Epoch:355, loss:5.707090377807617, Rollout: 30[0m
+[32mVal -- Epoch:355, loss:5.697600841522217, Rollout: 30[0m
+[32mVal -- Epoch:355, loss:5.805100917816162, Rollout: 30[0m
+[32mVal -- Epoch:355, loss:5.640475749969482, Rollout: 30[0m
+[32mVal -- Epoch:355, loss:5.740164756774902, Rollout: 30[0m
+[32mVal -- Epoch:355, loss:5.688445091247559, Rollout: 30[0m
+Validation completed in 0.2632995843887329 mins, Total time: 570.3704873005549 mins
+Training epoch completed in 1.553278128306071 mins, Total time: 571.9237663706143 mins
+Training epoch completed in 1.5343547662099202 mins, Total time: 573.4581232269605 mins
+Train -- Epoch:357, loss:5.594452857971191, Rollout:30
+Training epoch completed in 1.5318012555440268 mins, Total time: 574.9899264653524 mins
+Training epoch completed in 1.5782840649286907 mins, Total time: 576.5682117501894 mins
+Train -- Epoch:359, loss:5.577086925506592, Rollout:30
+Training epoch completed in 1.5436343987782797 mins, Total time: 578.1118606249491 mins
+[32mVal -- Epoch:360, loss:5.688320636749268, Rollout: 30[0m
+[32mVal -- Epoch:360, loss:5.715754985809326, Rollout: 30[0m
+[32mVal -- Epoch:360, loss:5.722655773162842, Rollout: 30[0m
+[32mVal -- Epoch:360, loss:5.701134204864502, Rollout: 30[0m
+[32mVal -- Epoch:360, loss:5.805379390716553, Rollout: 30[0m
+[32mVal -- Epoch:360, loss:5.644394397735596, Rollout: 30[0m
+[32mVal -- Epoch:360, loss:5.73995304107666, Rollout: 30[0m
+[32mVal -- Epoch:360, loss:5.6809844970703125, Rollout: 30[0m
+Validation completed in 0.2368030269940694 mins, Total time: 578.3486649274826 mins
+Training epoch completed in 1.5661294380823771 mins, Total time: 579.9147956013679 mins
+Training epoch completed in 1.5169238686561584 mins, Total time: 581.4317214290301 mins
+Train -- Epoch:362, loss:5.57694673538208, Rollout:30
+Training epoch completed in 1.523366375764211 mins, Total time: 582.9550897280375 mins
+Training epoch completed in 1.5437394539515177 mins, Total time: 584.4988515933354 mins
+Train -- Epoch:364, loss:5.603569984436035, Rollout:30
+Training epoch completed in 1.5402036627133688 mins, Total time: 586.0390563050906 mins
+[32mVal -- Epoch:365, loss:5.68113374710083, Rollout: 30[0m
+[32mVal -- Epoch:365, loss:5.720715522766113, Rollout: 30[0m
+[32mVal -- Epoch:365, loss:5.719301223754883, Rollout: 30[0m
+[32mVal -- Epoch:365, loss:5.706655025482178, Rollout: 30[0m
+[32mVal -- Epoch:365, loss:5.806812286376953, Rollout: 30[0m
+[32mVal -- Epoch:365, loss:5.6571946144104, Rollout: 30[0m
+[32mVal -- Epoch:365, loss:5.743177890777588, Rollout: 30[0m
+[32mVal -- Epoch:365, loss:5.693934917449951, Rollout: 30[0m
+Validation completed in 0.23515694538752238 mins, Total time: 586.2742142081261 mins
+Training epoch completed in 1.8210694829622904 mins, Total time: 588.095284597079 mins
+Training epoch completed in 1.3854716420173645 mins, Total time: 589.4807573636373 mins
+Train -- Epoch:367, loss:5.598887920379639, Rollout:30
+Training epoch completed in 1.4953159054120382 mins, Total time: 590.9760750889778 mins
+Training epoch completed in 1.7479984879493713 mins, Total time: 592.7240749359131 mins
+Train -- Epoch:369, loss:5.6108479499816895, Rollout:30
+Training epoch completed in 1.4909039696057638 mins, Total time: 594.2149808605512 mins
+[32mVal -- Epoch:370, loss:5.685703277587891, Rollout: 30[0m
+[32mVal -- Epoch:370, loss:5.718409061431885, Rollout: 30[0m
+[32mVal -- Epoch:370, loss:5.72653865814209, Rollout: 30[0m
+[32mVal -- Epoch:370, loss:5.70511531829834, Rollout: 30[0m
+[32mVal -- Epoch:370, loss:5.812360763549805, Rollout: 30[0m
+[32mVal -- Epoch:370, loss:5.657413959503174, Rollout: 30[0m
+[32mVal -- Epoch:370, loss:5.741188049316406, Rollout: 30[0m
+[32mVal -- Epoch:370, loss:5.685372829437256, Rollout: 30[0m
+Validation completed in 0.24815913438796997 mins, Total time: 594.4631410598755 mins
+Training epoch completed in 1.5612926562627156 mins, Total time: 596.0244356433551 mins
+Training epoch completed in 1.4612804412841798 mins, Total time: 597.4857180992763 mins
+Train -- Epoch:372, loss:5.617753982543945, Rollout:30
+Training epoch completed in 1.4916640837987265 mins, Total time: 598.9773842215538 mins
+Training epoch completed in 1.4728543837865193 mins, Total time: 600.4502397139867 mins
+Train -- Epoch:374, loss:5.566686153411865, Rollout:30
+Training epoch completed in 1.4962317069371542 mins, Total time: 601.9464731534322 mins
+[32mVal -- Epoch:375, loss:5.677550315856934, Rollout: 30[0m
+[32mVal -- Epoch:375, loss:5.713222503662109, Rollout: 30[0m
+[32mVal -- Epoch:375, loss:5.717484474182129, Rollout: 30[0m
+[32mVal -- Epoch:375, loss:5.701769828796387, Rollout: 30[0m
+[32mVal -- Epoch:375, loss:5.819676876068115, Rollout: 30[0m
+[32mVal -- Epoch:375, loss:5.654621124267578, Rollout: 30[0m
+[32mVal -- Epoch:375, loss:5.736280918121338, Rollout: 30[0m
+[32mVal -- Epoch:375, loss:5.693313121795654, Rollout: 30[0m
+Validation completed in 0.2333340009053548 mins, Total time: 602.1798080881437 mins
+Training epoch completed in 1.4165345311164856 mins, Total time: 603.59634364446 mins
+Training epoch completed in 1.4366013566652933 mins, Total time: 605.0329468369484 mins
+Train -- Epoch:377, loss:5.60575008392334, Rollout:30
+Training epoch completed in 1.4225002646446228 mins, Total time: 606.4554493467014 mins
+Training epoch completed in 1.4789338946342467 mins, Total time: 607.9343843340873 mins
+Train -- Epoch:379, loss:5.6672282218933105, Rollout:30
+Training epoch completed in 1.6334315896034242 mins, Total time: 609.5678175767263 mins
+[32mVal -- Epoch:380, loss:5.681938648223877, Rollout: 30[0m
+[32mVal -- Epoch:380, loss:5.716020584106445, Rollout: 30[0m
+[32mVal -- Epoch:380, loss:5.711177349090576, Rollout: 30[0m
+[32mVal -- Epoch:380, loss:5.709146976470947, Rollout: 30[0m
+[32mVal -- Epoch:380, loss:5.802567481994629, Rollout: 30[0m
+[32mVal -- Epoch:380, loss:5.650653839111328, Rollout: 30[0m
+[32mVal -- Epoch:380, loss:5.743803977966309, Rollout: 30[0m
+[32mVal -- Epoch:380, loss:5.694222927093506, Rollout: 30[0m
+Validation completed in 0.24705179929733276 mins, Total time: 609.8148713588714 mins
+Training epoch completed in 1.695335038503011 mins, Total time: 611.5102073629697 mins
+Training epoch completed in 1.705656401316325 mins, Total time: 613.2158660968145 mins
+Train -- Epoch:382, loss:5.645047664642334, Rollout:30
+Training epoch completed in 1.585290284951528 mins, Total time: 614.8011585791905 mins
+Training epoch completed in 1.5597511967023214 mins, Total time: 616.3609110275904 mins
+Train -- Epoch:384, loss:5.616621971130371, Rollout:30
+Training epoch completed in 1.4451953132947286 mins, Total time: 617.8061083356539 mins
+[32mVal -- Epoch:385, loss:5.684646129608154, Rollout: 30[0m
+[32mVal -- Epoch:385, loss:5.714216232299805, Rollout: 30[0m
+[32mVal -- Epoch:385, loss:5.719820022583008, Rollout: 30[0m
+[32mVal -- Epoch:385, loss:5.708927631378174, Rollout: 30[0m
+[32mVal -- Epoch:385, loss:5.800433158874512, Rollout: 30[0m
+[32mVal -- Epoch:385, loss:5.651660919189453, Rollout: 30[0m
+[32mVal -- Epoch:385, loss:5.737069606781006, Rollout: 30[0m
+[32mVal -- Epoch:385, loss:5.68369722366333, Rollout: 30[0m
+Validation completed in 0.23518893321355183 mins, Total time: 618.0412982503573 mins
+Training epoch completed in 1.6276920994122823 mins, Total time: 619.6690005580584 mins
+Training epoch completed in 1.3897977272669475 mins, Total time: 621.0587996562322 mins
+Train -- Epoch:387, loss:5.569580078125, Rollout:30
+Training epoch completed in 1.4260089238484701 mins, Total time: 622.4848107616107 mins
+Training epoch completed in 1.7036368290583292 mins, Total time: 624.188448981444 mins
+Train -- Epoch:389, loss:5.594990253448486, Rollout:30
+Training epoch completed in 1.5624523440996805 mins, Total time: 625.7509024977684 mins
+[32mVal -- Epoch:390, loss:5.679905891418457, Rollout: 30[0m
+[32mVal -- Epoch:390, loss:5.715269565582275, Rollout: 30[0m
+[32mVal -- Epoch:390, loss:5.7122297286987305, Rollout: 30[0m
+[32mVal -- Epoch:390, loss:5.698519229888916, Rollout: 30[0m
+[32mVal -- Epoch:390, loss:5.813316822052002, Rollout: 30[0m
+[32mVal -- Epoch:390, loss:5.643071174621582, Rollout: 30[0m
+[32mVal -- Epoch:390, loss:5.742937088012695, Rollout: 30[0m
+[32mVal -- Epoch:390, loss:5.689143180847168, Rollout: 30[0m
+Validation completed in 0.237906010945638 mins, Total time: 625.9888096412022 mins
+Training epoch completed in 1.5626313010851542 mins, Total time: 627.5514506379764 mins
+Training epoch completed in 1.5040639877319335 mins, Total time: 629.0555157661438 mins
+Train -- Epoch:392, loss:5.549476146697998, Rollout:30
+Training epoch completed in 1.3872284849484762 mins, Total time: 630.4427460789681 mins
+Training epoch completed in 1.3762882272402446 mins, Total time: 631.819036523501 mins
+Train -- Epoch:394, loss:5.601405620574951, Rollout:30
+Training epoch completed in 1.3551775892575582 mins, Total time: 633.1742153048515 mins
+[32mVal -- Epoch:395, loss:5.680278778076172, Rollout: 30[0m
+[32mVal -- Epoch:395, loss:5.713742256164551, Rollout: 30[0m
+[32mVal -- Epoch:395, loss:5.71354866027832, Rollout: 30[0m
+[32mVal -- Epoch:395, loss:5.6969380378723145, Rollout: 30[0m
+[32mVal -- Epoch:395, loss:5.804616928100586, Rollout: 30[0m
+[32mVal -- Epoch:395, loss:5.650973320007324, Rollout: 30[0m
+[32mVal -- Epoch:395, loss:5.745390892028809, Rollout: 30[0m
+[32mVal -- Epoch:395, loss:5.683109760284424, Rollout: 30[0m
+Validation completed in 0.21007794936498006 mins, Total time: 633.3842949787776 mins
+Training epoch completed in 1.4215268731117248 mins, Total time: 634.8058226068814 mins
+Training epoch completed in 1.5163585066795349 mins, Total time: 636.3221822698911 mins
+Train -- Epoch:397, loss:5.601446628570557, Rollout:30
+Training epoch completed in 1.4496700843175252 mins, Total time: 637.7718536218007 mins
+Training epoch completed in 1.615236186981201 mins, Total time: 639.3870928843816 mins
+Train -- Epoch:399, loss:5.615139007568359, Rollout:30
+Training epoch completed in 1.6188032269477843 mins, Total time: 641.0058984120686 mins
+[32mVal -- Epoch:400, loss:5.684264659881592, Rollout: 30[0m
+[32mVal -- Epoch:400, loss:5.716464519500732, Rollout: 30[0m
+[32mVal -- Epoch:400, loss:5.716141223907471, Rollout: 30[0m
+[32mVal -- Epoch:400, loss:5.703583240509033, Rollout: 30[0m
+[32mVal -- Epoch:400, loss:5.800544261932373, Rollout: 30[0m
+[32mVal -- Epoch:400, loss:5.648573875427246, Rollout: 30[0m
+[32mVal -- Epoch:400, loss:5.742015838623047, Rollout: 30[0m
+[32mVal -- Epoch:400, loss:5.684814453125, Rollout: 30[0m
+Validation completed in 0.26374653180440266 mins, Total time: 641.2696467796961 mins
+Training epoch completed in 1.5635988434155783 mins, Total time: 642.8332465966542 mins
+Train -- Epoch:401, loss:5.646688938140869, Rollout:30
+Training epoch completed in 1.6838138421376547 mins, Total time: 644.5170626044273 mins
+Training epoch completed in 1.7021858056386312 mins, Total time: 646.2192495385806 mins
+Training epoch completed in 1.541150482495626 mins, Total time: 647.7604011297226 mins
+Train -- Epoch:404, loss:5.539115905761719, Rollout:30
+Training epoch completed in 1.4881468852361044 mins, Total time: 649.2485499858856 mins
+[32mVal -- Epoch:405, loss:5.685951232910156, Rollout: 30[0m
+[32mVal -- Epoch:405, loss:5.715812683105469, Rollout: 30[0m
+[32mVal -- Epoch:405, loss:5.714223861694336, Rollout: 30[0m
+[32mVal -- Epoch:405, loss:5.700484275817871, Rollout: 30[0m
+[32mVal -- Epoch:405, loss:5.801823139190674, Rollout: 30[0m
+[32mVal -- Epoch:405, loss:5.651732921600342, Rollout: 30[0m
+[32mVal -- Epoch:405, loss:5.737600326538086, Rollout: 30[0m
+[32mVal -- Epoch:405, loss:5.687442302703857, Rollout: 30[0m
+Validation completed in 0.344047749042511 mins, Total time: 649.5925997257233 mins
+Training epoch completed in 1.4427749077479044 mins, Total time: 651.0353755950928 mins
+Train -- Epoch:406, loss:5.608732223510742, Rollout:30
+Training epoch completed in 1.821525518099467 mins, Total time: 652.8569031755129 mins
+Training epoch completed in 1.4417152802149455 mins, Total time: 654.2986201643944 mins
+Training epoch completed in 1.5431921164194742 mins, Total time: 655.8418142636617 mins
+Train -- Epoch:409, loss:5.585082530975342, Rollout:30
+Training epoch completed in 1.3123010913530986 mins, Total time: 657.1541173656782 mins
+[32mVal -- Epoch:410, loss:5.6863555908203125, Rollout: 30[0m
+[32mVal -- Epoch:410, loss:5.710291385650635, Rollout: 30[0m
+[32mVal -- Epoch:410, loss:5.7186079025268555, Rollout: 30[0m
+[32mVal -- Epoch:410, loss:5.6961541175842285, Rollout: 30[0m
+[32mVal -- Epoch:410, loss:5.803845405578613, Rollout: 30[0m
+[32mVal -- Epoch:410, loss:5.6518683433532715, Rollout: 30[0m
+[32mVal -- Epoch:410, loss:5.742049217224121, Rollout: 30[0m
+[32mVal -- Epoch:410, loss:5.68968391418457, Rollout: 30[0m
+Validation completed in 0.2636467218399048 mins, Total time: 657.4177661339442 mins
+Training epoch completed in 1.6549084583918254 mins, Total time: 659.0726758321126 mins
+Train -- Epoch:411, loss:5.661693572998047, Rollout:30
+Training epoch completed in 1.55768567721049 mins, Total time: 660.6303638855617 mins
+Training epoch completed in 1.4493842720985413 mins, Total time: 662.0797491033871 mins
+Training epoch completed in 1.4331023375193277 mins, Total time: 663.5128530502319 mins
+Train -- Epoch:414, loss:5.5737833976745605, Rollout:30
+Training epoch completed in 1.7611598889033 mins, Total time: 665.2740289489428 mins
+[32mVal -- Epoch:415, loss:5.6841139793396, Rollout: 30[0m
+[32mVal -- Epoch:415, loss:5.711549758911133, Rollout: 30[0m
+[32mVal -- Epoch:415, loss:5.723450660705566, Rollout: 30[0m
+[32mVal -- Epoch:415, loss:5.707195281982422, Rollout: 30[0m
+[32mVal -- Epoch:415, loss:5.792490482330322, Rollout: 30[0m
+[32mVal -- Epoch:415, loss:5.6433868408203125, Rollout: 30[0m
+[32mVal -- Epoch:415, loss:5.745911121368408, Rollout: 30[0m
+[32mVal -- Epoch:415, loss:5.689742088317871, Rollout: 30[0m
+Validation completed in 0.26847727298736573 mins, Total time: 665.5425074021022 mins
+Training epoch completed in 1.404599130153656 mins, Total time: 666.9471074064572 mins
+Train -- Epoch:416, loss:5.5634446144104, Rollout:30
+Training epoch completed in 1.4290924549102784 mins, Total time: 668.3762010335922 mins
+Training epoch completed in 1.5044414162635804 mins, Total time: 669.8806449135144 mins
+Training epoch completed in 1.6152015686035157 mins, Total time: 671.4958485205968 mins
+Train -- Epoch:419, loss:5.612046241760254, Rollout:30
+Training epoch completed in 1.4135888695716858 mins, Total time: 672.9094385981559 mins
+[32mVal -- Epoch:420, loss:5.678374767303467, Rollout: 30[0m
+[32mVal -- Epoch:420, loss:5.712528228759766, Rollout: 30[0m
+[32mVal -- Epoch:420, loss:5.724969863891602, Rollout: 30[0m
+[32mVal -- Epoch:420, loss:5.701906681060791, Rollout: 30[0m
+[32mVal -- Epoch:420, loss:5.808131217956543, Rollout: 30[0m
+[32mVal -- Epoch:420, loss:5.653411865234375, Rollout: 30[0m
+[32mVal -- Epoch:420, loss:5.743279457092285, Rollout: 30[0m
+[32mVal -- Epoch:420, loss:5.686246871948242, Rollout: 30[0m
+Validation completed in 0.17437640031178792 mins, Total time: 673.0838160236676 mins
+Training epoch completed in 1.5926579356193542 mins, Total time: 674.6764752308528 mins
+Train -- Epoch:421, loss:5.635736465454102, Rollout:30
+Training epoch completed in 1.4607437650362651 mins, Total time: 676.1372262358666 mins
+Training epoch completed in 1.484615683555603 mins, Total time: 677.6218430399895 mins
+Training epoch completed in 1.828129808108012 mins, Total time: 679.4499740322431 mins
+Train -- Epoch:424, loss:5.546156406402588, Rollout:30
+Training epoch completed in 1.503071653842926 mins, Total time: 680.9530468622844 mins
+[32mVal -- Epoch:425, loss:5.684366703033447, Rollout: 30[0m
+[32mVal -- Epoch:425, loss:5.715230464935303, Rollout: 30[0m
+[32mVal -- Epoch:425, loss:5.715764999389648, Rollout: 30[0m
+[32mVal -- Epoch:425, loss:5.703587055206299, Rollout: 30[0m
+[32mVal -- Epoch:425, loss:5.802321434020996, Rollout: 30[0m
+[32mVal -- Epoch:425, loss:5.652000427246094, Rollout: 30[0m
+[32mVal -- Epoch:425, loss:5.742321491241455, Rollout: 30[0m
+[32mVal -- Epoch:425, loss:5.685874938964844, Rollout: 30[0m
+Validation completed in 0.2511693358421326 mins, Total time: 681.2042174736658 mins
+Training epoch completed in 1.4923174699147543 mins, Total time: 682.6965358455976 mins
+Train -- Epoch:426, loss:5.591597557067871, Rollout:30
+Training epoch completed in 1.429986345767975 mins, Total time: 684.1265241980552 mins
+Training epoch completed in 1.4637261708577474 mins, Total time: 685.590251449744 mins
+Training epoch completed in 1.4779555598894756 mins, Total time: 687.06820824941 mins
+Train -- Epoch:429, loss:5.6135711669921875, Rollout:30
+Training epoch completed in 1.4920879205067952 mins, Total time: 688.560297369957 mins
+[32mVal -- Epoch:430, loss:5.680486679077148, Rollout: 30[0m
+[32mVal -- Epoch:430, loss:5.711040496826172, Rollout: 30[0m
+[32mVal -- Epoch:430, loss:5.719203948974609, Rollout: 30[0m
+[32mVal -- Epoch:430, loss:5.699168682098389, Rollout: 30[0m
+[32mVal -- Epoch:430, loss:5.80928373336792, Rollout: 30[0m
+[32mVal -- Epoch:430, loss:5.647914409637451, Rollout: 30[0m
+[32mVal -- Epoch:430, loss:5.731968879699707, Rollout: 30[0m
+[32mVal -- Epoch:430, loss:5.689496040344238, Rollout: 30[0m
+Validation completed in 0.18190191586812338 mins, Total time: 688.7422003149986 mins
+Training epoch completed in 1.6014475186665853 mins, Total time: 690.3436487714449 mins
+Train -- Epoch:431, loss:5.594703674316406, Rollout:30
+Training epoch completed in 1.444458786646525 mins, Total time: 691.7881272474925 mins
+Training epoch completed in 1.4305562734603883 mins, Total time: 693.2186851183574 mins
+Training epoch completed in 1.5467456579208374 mins, Total time: 694.7654328346252 mins
+Train -- Epoch:434, loss:5.566553115844727, Rollout:30
+Training epoch completed in 1.4465927203496298 mins, Total time: 696.212026778857 mins
+[32mVal -- Epoch:435, loss:5.685266971588135, Rollout: 30[0m
+[32mVal -- Epoch:435, loss:5.707790851593018, Rollout: 30[0m
+[32mVal -- Epoch:435, loss:5.720817565917969, Rollout: 30[0m
+[32mVal -- Epoch:435, loss:5.6994194984436035, Rollout: 30[0m
+[32mVal -- Epoch:435, loss:5.807207107543945, Rollout: 30[0m
+[32mVal -- Epoch:435, loss:5.660734176635742, Rollout: 30[0m
+[32mVal -- Epoch:435, loss:5.74716329574585, Rollout: 30[0m
+[32mVal -- Epoch:435, loss:5.681648254394531, Rollout: 30[0m
+Validation completed in 0.23968067169189453 mins, Total time: 696.4517093578975 mins
+Training epoch completed in 1.5356738805770873 mins, Total time: 697.9873841881752 mins
+Train -- Epoch:436, loss:5.521119117736816, Rollout:30
+Training epoch completed in 1.49040230512619 mins, Total time: 699.4777887940406 mins
+Training epoch completed in 1.3534971117973327 mins, Total time: 700.8312869111697 mins
+Training epoch completed in 1.4147353370984395 mins, Total time: 702.2460242907206 mins
+Train -- Epoch:439, loss:5.599290370941162, Rollout:30
+Training epoch completed in 1.4815175453821818 mins, Total time: 703.7275438984235 mins
+[32mVal -- Epoch:440, loss:5.680334568023682, Rollout: 30[0m
+[32mVal -- Epoch:440, loss:5.712149143218994, Rollout: 30[0m
+[32mVal -- Epoch:440, loss:5.719106674194336, Rollout: 30[0m
+[32mVal -- Epoch:440, loss:5.699626445770264, Rollout: 30[0m
+[32mVal -- Epoch:440, loss:5.81015682220459, Rollout: 30[0m
+[32mVal -- Epoch:440, loss:5.654627323150635, Rollout: 30[0m
+[32mVal -- Epoch:440, loss:5.740392684936523, Rollout: 30[0m
+[32mVal -- Epoch:440, loss:5.691046237945557, Rollout: 30[0m
+Validation completed in 0.23542686303456625 mins, Total time: 703.9629720012347 mins

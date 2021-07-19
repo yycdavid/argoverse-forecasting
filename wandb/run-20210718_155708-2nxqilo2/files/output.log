@@ -1,0 +1,37 @@
+Training begins ...
+2021-07-18 15:57:27.004475: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcuda.so.1
+2021-07-18 15:57:27.005404: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1716] Found device 0 with properties: 
+pciBusID: 0000:86:00.0 name: GeForce RTX 2080 Ti computeCapability: 7.5
+coreClock: 1.545GHz coreCount: 68 deviceMemorySize: 10.76GiB deviceMemoryBandwidth: 573.69GiB/s
+2021-07-18 15:57:27.005567: W tensorflow/stream_executor/platform/default/dso_loader.cc:59] Could not load dynamic library 'libcudart.so.10.1'; dlerror: libcudart.so.10.1: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: :/home/jasonyma/.mujoco/mujoco200/bin:/home/jasonyma/.mujoco/mujoco200/bin
+2021-07-18 15:57:27.008318: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcublas.so.10
+2021-07-18 15:57:27.010630: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcufft.so.10
+2021-07-18 15:57:27.010983: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcurand.so.10
+2021-07-18 15:57:27.014090: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcusolver.so.10
+2021-07-18 15:57:27.016258: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcusparse.so.10
+2021-07-18 15:57:27.016414: W tensorflow/stream_executor/platform/default/dso_loader.cc:59] Could not load dynamic library 'libcudnn.so.7'; dlerror: libcudnn.so.7: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: :/home/jasonyma/.mujoco/mujoco200/bin:/home/jasonyma/.mujoco/mujoco200/bin
+2021-07-18 15:57:27.016422: W tensorflow/core/common_runtime/gpu/gpu_device.cc:1753] Cannot dlopen some GPU libraries. Please make sure the missing libraries mentioned above are installed properly if you would like to use GPU. Follow the guide at https://www.tensorflow.org/install/gpu for how to download and setup the required libraries for your platform.
+Skipping registering GPU devices...
+2021-07-18 15:57:27.017204: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2021-07-18 15:57:27.063601: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2400000000 Hz
+2021-07-18 15:57:27.072977: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x557a9cdaea80 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2021-07-18 15:57:27.073021: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+2021-07-18 15:57:27.073230: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1257] Device interconnect StreamExecutor with strength 1 edge matrix:
+2021-07-18 15:57:27.073249: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1263]      
+Train -- Epoch:0, loss:6.991437911987305, Rollout:30
+Training epoch completed in 1.32251664797465 mins, Total time: 1.3239736000696818 mins
+Training epoch completed in 1.4008163452148437 mins, Total time: 2.724792162577311 mins
+Train -- Epoch:2, loss:5.721805572509766, Rollout:30
+Training epoch completed in 1.2763514399528504 mins, Total time: 4.001144655545553 mins
+Training epoch completed in 1.2919170260429382 mins, Total time: 5.29306351741155 mins
+Train -- Epoch:4, loss:5.716465473175049, Rollout:30
+Training epoch completed in 1.3967644254366556 mins, Total time: 6.6898300806681315 mins
+Traceback (most recent call last):
+  File "lstm_prog_train_test.py", line 1094, in <module>
+    main()
+  File "lstm_prog_train_test.py", line 1047, in main
+    False,
+  File "lstm_prog_train_test.py", line 679, in validate
+    color="green",
+TypeError: 'color' is an invalid keyword argument for print()

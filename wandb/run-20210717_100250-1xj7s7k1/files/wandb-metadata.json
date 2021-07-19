@@ -1,0 +1,27 @@
+{
+    "os": "Linux-4.15.0-143-generic-x86_64-with-debian-buster-sid",
+    "python": "3.7.6",
+    "heartbeatAt": "2021-07-17T14:02:54.857318",
+    "startedAt": "2021-07-17T14:02:50.946751",
+    "docker": null,
+    "gpu": "GeForce RTX 2080 Ti",
+    "gpu_count": 4,
+    "cpu_count": 80,
+    "cuda": "10.0.130",
+    "args": [
+        "--use_delta",
+        "--wandb"
+    ],
+    "state": "running",
+    "codePath": "lstm_prog_train_test.py",
+    "program": "lstm_prog_train_test.py",
+    "git": {
+        "remote": "https://github.com/yycdavid/argoverse-forecasting.git",
+        "commit": "dcece72454c298a18b677cb44d88f1c42bcfda4c"
+    },
+    "email": "yechengma@gmail.com",
+    "root": "/home/jasonyma/argoverse-forecasting",
+    "host": "ash02",
+    "username": "jasonyma",
+    "executable": "/home/jasonyma/anaconda3/bin/python"
+}

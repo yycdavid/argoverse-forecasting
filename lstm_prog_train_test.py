@@ -120,11 +120,11 @@ def parse_arguments() -> Any:
                         help="If true, only run the inference")
     parser.add_argument("--train_batch_size",
                         type=int,
-                        default=1,
+                        default=512,
                         help="Training batch size")
     parser.add_argument("--val_batch_size",
                         type=int,
-                        default=1,
+                        default=512,
                         help="Val batch size")
     parser.add_argument("--end_epoch",
                         type=int,
@@ -362,7 +362,8 @@ def train(
         mse_loss = nn.MSELoss()
 
         # Iteratively decode centerlines and compute losses
-        for t in range(programs.shape[1]):
+        # for t in range(programs.shape[1]):
+        for t in range(1):
 
             # Encode observed trajectory
             for ei in range(_input.shape[1]):
@@ -370,7 +371,11 @@ def train(
                 encoder_hidden = encoder(encoder_input, encoder_hidden)
 
             # Compute centerline cross-entropy loss
-            centerline_scores = torch.softmax(torch.matmul(encoder_hidden[0], cls_encoder_hidden.view(-1, cls_encoder_hidden.shape[-1]).transpose(1,0)), dim=1)
+            # centerline_scores = torch.softmax(torch.matmul(encoder_hidden[0], cls_encoder_hidden.view(-1, cls_encoder_hidden.shape[-1]).transpose(1,0)), dim=1)
+            # from ipdb import set_trace
+            # set_trace()
+            centerline_scores = torch.softmax(torch.bmm(encoder_hidden[0].view(batch_size, 1, 16),
+             cls_encoder_hidden.view(batch_size, 10,16).transpose(2, 1)).squeeze(1), dim=1)
             centerline_gt = programs[:, t, 0].long()
             centerline_loss = ce_loss(centerline_scores, centerline_gt)
 
@@ -378,6 +383,7 @@ def train(
             centerline_pred_index = torch.argmax(centerline_scores, dim=1)
             cls_encoder_hidden = cls_encoder_hidden.reshape(batch_size, -1, cls_encoder_hidden.shape[-1])
             centerline_pred = cls[np.arange(batch_size), centerline_pred_index]
+
             cls_encoder_hidden_pred = cls_encoder_hidden[np.arange(batch_size), centerline_pred_index]
 
             # Decode timestep and velocity
@@ -395,19 +401,24 @@ def train(
             velocity_loss = mse_loss(velocity_pred, velocity_gt)
             prog_loss += centerline_loss + timestep_loss + velocity_loss
 
+            # print(centerline_loss, timestep_loss, velocity_loss)
             # Decode programs into trajectories and treat them as new inputs
             # TODO: can we batch-ify this step?
 
-            new_input = []
-            for i in range(_input.shape[0]):
-                new_input_i = exec_prog(_input[i].cpu().numpy(), centerline_pred[i].cpu().numpy(), timestep_pred[i].cpu().numpy(), velocity_pred[i].detach().cpu().numpy())
-                new_input_i = np.array(new_input_i)
-                new_input.append(new_input_i)
-            _input = torch.FloatTensor(new_input).to(device)
+            # new_input = []
+            # for i in range(_input.shape[0]):
+            #     new_input_i = exec_prog(_input[i].cpu().numpy(), centerline_pred[i].cpu().numpy(),
+            #      timestep_pred[i].cpu().numpy(), velocity_pred[i].detach().cpu().numpy())
+            #     new_input_i = np.array(new_input_i)
+            #     new_input.append(new_input_i)
+
+            # from ipdb import set_trace
+            # set_trace()
+            # _input = torch.FloatTensor(new_input).to(device)
 
             # Deal with the special case of timestep = 0
-            if len(_input.size()) == 2:
-                _input = _input.unsqueeze(0) 
+            # if len(_input.size()) == 2:
+            #     _input = _input.unsqueeze(0) 
 
             # Decode trajectories if used for training
             if use_traj and t == 0:
@@ -431,7 +442,7 @@ def train(
                     decoder_input = decoder_output
 
         if use_traj:
-            loss = loss + prog_loss 
+            loss = traj_loss + prog_loss 
         else:
             loss = prog_loss 
 
@@ -458,7 +469,11 @@ def train(
                                   value=loss.item(),
                                   step=epoch)
             if args.wandb:
-                wandb.log({'Train/loss': loss.item()}, step=epoch)
+                # wandb.log({'Train/loss': loss.item()}, step=epoch)
+                wandb.log({'Train/loss': loss.item(),
+                            'Train/centerline_loss': centerline_loss.item(),
+                            'Train/velocity_loss': velocity_loss.item(),
+                            'Train/timestep_loss': timestep_loss.item()})
 
         global_step += 1
 
@@ -503,7 +518,7 @@ def validate(
     global best_loss
     total_loss = []
 
-    for _, (_input, target, helpers) in enumerate(val_loader):
+    for i, (_input, target, helpers) in enumerate(val_loader):
 
         cls = []
         cls_num = [0]
@@ -581,15 +596,18 @@ def validate(
         mse_loss = nn.MSELoss()
 
         # Iteratively decode centerlines and compute losses
-        for t in range(programs.shape[1]):
-
+        # for t in range(programs.shape[1]):
+        for t in range(1):
             # Encode observed trajectory
             for ei in range(_input.shape[1]):
                 encoder_input = _input[:, ei, :]
                 encoder_hidden = encoder(encoder_input, encoder_hidden)
 
             # Compute centerline cross-entropy loss
-            centerline_scores = torch.softmax(torch.matmul(encoder_hidden[0], cls_encoder_hidden.view(-1, cls_encoder_hidden.shape[-1]).transpose(1,0)), dim=1)
+            # centerline_scores = torch.softmax(torch.matmul(encoder_hidden[0], cls_encoder_hidden.view(-1, cls_encoder_hidden.shape[-1]).transpose(1,0)), dim=1)
+            # TODO: perhaps concatenate the two hidden features
+            centerline_scores = torch.softmax(torch.bmm(encoder_hidden[0].view(batch_size, 1, 16),
+             cls_encoder_hidden.view(batch_size, 10,16).transpose(2, 1)).squeeze(1), dim=1)
             centerline_gt = programs[:, t, 0].long()
             centerline_loss = ce_loss(centerline_scores, centerline_gt)
 
@@ -614,20 +632,20 @@ def validate(
             velocity_loss = mse_loss(velocity_pred, velocity_gt)
             prog_loss += centerline_loss + timestep_loss + velocity_loss
 
-            print("centerline loss: {centerline_loss}, timestep_loss: {timestep_loss}, velocity_loss: {velocity_loss}")
+            # print("centerline loss: {centerline_loss}, timestep_loss: {timestep_loss}, velocity_loss: {velocity_loss}")
             # Decode programs into trajectories and treat them as new inputs
             # TODO: can we batch-ify this step?
 
-            new_input = []
-            for i in range(_input.shape[0]):
-                new_input_i = exec_prog(_input[i].cpu().numpy(), centerline_pred[i].cpu().numpy(), timestep_pred[i].cpu().numpy(), velocity_pred[i].detach().cpu().numpy())
-                new_input_i = np.array(new_input_i)
-                new_input.append(new_input_i)
-            _input = torch.FloatTensor(new_input).to(device)
+            # new_input = []
+            # for i in range(_input.shape[0]):
+            #     new_input_i = exec_prog(_input[i].cpu().numpy(), centerline_pred[i].cpu().numpy(), timestep_pred[i].cpu().numpy(), velocity_pred[i].detach().cpu().numpy())
+            #     new_input_i = np.array(new_input_i)
+            #     new_input.append(new_input_i)
+            # _input = torch.FloatTensor(new_input).to(device)
             
             # Deal with the special case of timestep = 0
-            if len(_input.size()) == 2:
-                _input = _input.unsqueeze(0) 
+            # if len(_input.size()) == 2:
+            #     _input = _input.unsqueeze(0) 
 
             # Decode trajectories if used for training
             if use_traj and t == 0:
@@ -660,7 +678,7 @@ def validate(
         total_loss.append(loss)
 
         if i % 10 == 0:
-            print(
+            cprint(
                 f"Val -- Epoch:{epoch}, loss:{loss}, Rollout: {rollout_len}",
                 color="green",
             )
@@ -692,7 +710,11 @@ def validate(
 
     logger.scalar_summary(tag="Val/loss", value=val_loss.item(), step=epoch)
     if args.wandb:
-        wandb.log({'Val/loss': val_loss.item()}, step=epoch)
+        wandb.log({'Val/loss': loss.item(),
+                            'Val/centerline_loss': centerline_loss.item(),
+                            'Val/velocity_loss': velocity_loss.item(),
+                            'Val/timestep_loss': timestep_loss.item()})
+
     # Keep track of the loss to change preiction horizon
     if val_loss <= prev_loss:
         decrement_counter = 0
@@ -894,6 +916,7 @@ def main():
     # Get data
     data_dict = baseline_utils.get_data(args, baseline_key)
 
+
     # add the program data to the data_dict
     new_data_train = pd.read_pickle('Traj/train_prep.pkl')
     new_data_val = pd.read_pickle('Traj/val_prep.pkl')
@@ -1009,35 +1032,36 @@ def main():
                 )
 
                 epoch += 1
-                if epoch % 5 == 0:
-                    start = time.time()
-                    prev_loss, decrement_counter = validate(
-                        val_loader,
-                        epoch,
-                        criterion,
-                        logger,
-                        encoder,
-                        cls_encoder,
-                        decoder,
-                        prog_decoder, 
-                        encoder_optimizer,
-                        cls_encoder_optimizer,
-                        decoder_optimizer,
-                        prog_decoder_optimizer,
-                        model_utils,
-                        prev_loss,
-                        decrement_counter,
-                        rollout_len,
-                        False,
-                    )
-                    end = time.time()
-                    print(
-                        f"Validation completed in {(end - start) / 60.0} mins, Total time: {(end - global_start_time) / 60.0} mins"
-                    )
+                with torch.no_grad():
+                    if epoch % 5 == 0:
+                        start = time.time()
+                        prev_loss, decrement_counter = validate(
+                            val_loader,
+                            epoch,
+                            criterion,
+                            logger,
+                            encoder,
+                            cls_encoder,
+                            decoder,
+                            prog_decoder, 
+                            encoder_optimizer,
+                            cls_encoder_optimizer,
+                            decoder_optimizer,
+                            prog_decoder_optimizer,
+                            model_utils,
+                            prev_loss,
+                            decrement_counter,
+                            rollout_len,
+                            False,
+                        )
+                        end = time.time()
+                        print(
+                            f"Validation completed in {(end - start) / 60.0} mins, Total time: {(end - global_start_time) / 60.0} mins"
+                        )
 
-                    # If val loss increased 3 times consecutively, go to next rollout length
-                    if decrement_counter > 2:
-                        break
+                        # If val loss increased 3 times consecutively, go to next rollout length
+                        if decrement_counter > 2:
+                            break
 
     else:
         start_time = time.time()
