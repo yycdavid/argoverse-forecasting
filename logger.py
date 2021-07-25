@@ -2,7 +2,8 @@
 import os
 
 import tensorflow as tf
-
+import logging
+tf.get_logger().setLevel(logging.ERROR)
 
 class Logger(object):
     """Tensorboard logger class."""

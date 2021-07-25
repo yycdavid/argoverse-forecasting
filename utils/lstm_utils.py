@@ -111,8 +111,11 @@ class LSTMDataset(Dataset):
             helpers[v] = locals()[k.lower()]
 
         # Add programs into the helper
-        programs = helper_df['PROG'].values
-        helpers.append(programs)
+        try:
+            programs = helper_df['PROG'].values
+            helpers.append(programs)
+        except:
+            pass
 
         return tuple(helpers)
 
@@ -127,8 +130,10 @@ class ModelUtils:
             state: State of the model
 
         """
-        filename = "{}/LSTM_rollout{}.pth.tar".format(save_dir,
-                                                      state["rollout_len"])
+        # filename = "{}/LSTM_rollout{}.pth.tar".format(save_dir,
+        #                                               state["rollout_len"])
+        filename = "{}/LSTM_step{}.pth.tar".format(save_dir,
+                                                      state["global_step"])
         torch.save(state, filename)
 
     def load_checkpoint(

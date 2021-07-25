@@ -37,24 +37,36 @@ def get_data(args: Any, baseline_key: str
     output_features = BASELINE_OUTPUT_FEATURES[baseline_key]
     if args.test_features:
         print("Loading Test data ...")
+        # test_input, test_output, test_df = load_and_preprocess_data(
+        #     input_features,
+        #     output_features,
+        #     args,
+        #     args.test_features,
+        #     mode="test")
         test_input, test_output, test_df = load_and_preprocess_data(
             input_features,
             output_features,
             args,
-            args.test_features,
-            mode="test")
+            args.val_features,
+            mode="val")
         print("Test Size: {}".format(test_input.shape[0]))
     else:
         test_input, test_output, test_df = [None] * 3
 
     if args.train_features:
         print("Loading Train data ...")
+        # train_input, train_output, train_df = load_and_preprocess_data(
+        #     input_features,
+        #     output_features,
+        #     args,
+        #     args.train_features,
+        #     mode="train")
         train_input, train_output, train_df = load_and_preprocess_data(
             input_features,
             output_features,
             args,
-            args.train_features,
-            mode="train")
+            args.val_features,
+            mode="val")
         print("Train Size: {}".format(train_input.shape[0]))
     else:
         train_input, train_output, train_df = [None] * 3
@@ -181,6 +193,7 @@ def load_and_preprocess_data(
             print("Creating relative distances...")
 
             # Relative features
+            # input_features_data and output_features_data are the same
             reference = get_relative_distance(input_features_data, mode, args)
             _ = get_relative_distance(output_features_data, mode, args)
             df["DELTA_REFERENCE"] = reference.tolist()
@@ -216,7 +229,9 @@ def get_relative_distance(data: np.ndarray, mode: str,
         traj_len = args.obs_len + args.pred_len
 
     for i in range(traj_len - 1, 0, -1):
-        data[:, i, :2] = data[:, i, :2] - data[:, i - 1, :2]
+        # data[:, i, :2] = data[:, i, :2] - data[:, i - 1, :2]
+        data[:, i, :2] = data[:, i, :2] - reference
+
     data[:, 0, :] = 0
     return reference
 

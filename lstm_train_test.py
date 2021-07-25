@@ -80,19 +80,19 @@ def parse_arguments() -> Any:
     )
     parser.add_argument(
         "--train_features",
-        default="",
+        default="Traj/forecasting_features_train.pkl",
         type=str,
         help="path to the file which has train features.",
     )
     parser.add_argument(
         "--val_features",
-        default="",
+        default="Traj/forecasting_features_val.pkl",
         type=str,
         help="path to the file which has val features.",
     )
     parser.add_argument(
         "--test_features",
-        default="",
+        default="Traj/forecasting_features_test.pkl",
         type=str,
         help="path to the file which has test features.",
     )
