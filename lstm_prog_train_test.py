@@ -328,7 +328,8 @@ def train(
 
         # Iteratively decode centerlines and compute losses
         # for t in range(programs.shape[1]):
-        for t in range(3):
+        total_segments = 1
+        for t in range(total_segments):
 
             # Encode observed trajectory
             for ei in range(_input.shape[1]):
@@ -361,7 +362,8 @@ def train(
             prog_output = prog_decoder(prog_decoder_features)
             # timestep_scores = prog_output[:, :-1]
             # timestep_pred = torch.argmax(timestep_scores, dim=1)
-            timestep_pred = torch.nn.Sigmoid()(prog_output[:, 0]) * 30
+            # timestep_pred = torch.nn.Sigmoid()(prog_output[:, 0]) * 30
+            timestep_pred = prog_output[:, 0]
             velocity_pred = prog_output[:, -1]
 
             timestep_gt = programs[:, t, 1]
@@ -371,7 +373,7 @@ def train(
             # timestep_loss = ce_loss(timestep_scores, timestep_gt)
             timestep_loss = mse_loss(timestep_pred, timestep_gt)
             velocity_loss = mse_loss(velocity_pred, velocity_gt)
-            prog_loss += centerline_loss + timestep_loss / 100 + velocity_loss
+            prog_loss += centerline_loss + timestep_loss / 100 + velocity_loss * 50
 
             # Decode programs into trajectories and treat them as new inputs
 
@@ -391,20 +393,21 @@ def train(
             # for result in results:
             #     new_input.append(torch.FloatTensor(result.get()))
             
-            new_input = []
-            for i in range(_input.shape[0]):
-                new_input_i = exec_prog(_input[i].cpu().numpy(), centerline_pred[i].cpu().numpy(),
-                 timestep_pred[i].detach().cpu().numpy().round().astype(int), velocity_pred[i].detach().cpu().numpy())
-                new_input_i = torch.FloatTensor(new_input_i)
-                # print(timestep_pred[i].long().detach().cpu().numpy(), new_input_i.shape)
-                new_input.append(new_input_i)
-            # print(time.time() - start)
+            if total_segments != 1:
+                new_input = []
+                for i in range(_input.shape[0]):
+                    new_input_i = exec_prog(_input[i].cpu().numpy(), centerline_pred[i].cpu().numpy(),
+                    timestep_pred[i].detach().cpu().numpy().round().astype(int), velocity_pred[i].detach().cpu().numpy())
+                    new_input_i = torch.FloatTensor(new_input_i)
+                    # print(timestep_pred[i].long().detach().cpu().numpy(), new_input_i.shape)
+                    new_input.append(new_input_i)
+                # print(time.time() - start)
 
-            _input = torch.nn.utils.rnn.pad_sequence(new_input, batch_first=True).to(device)
+                _input = torch.nn.utils.rnn.pad_sequence(new_input, batch_first=True).to(device)
 
-            # Deal with the special case of timestep = 0
-            if len(_input.size()) == 2:
-                _input = _input.unsqueeze(0) 
+                # Deal with the special case of timestep = 0
+                if len(_input.size()) == 2:
+                    _input = _input.unsqueeze(0) 
 
             # Decode trajectories if used for training
             if use_traj and t == 0:
@@ -449,12 +452,12 @@ def train(
         if global_step % 100 == 0:
             # Log results
             print(
-                f"Train -- Epoch:{epoch}, Step:{global_step}, Loss:{loss}")
+                f"Train -- Epoch:{epoch}, Step:{global_step}, Loss:{loss}, Timestep: {timestep_loss:.2f}, Centerline: {centerline_loss:.2f}, Velocity: {velocity_loss:.2f}")
 
             # logger.scalar_summary(tag="Train/loss",
             #                       value=loss.item(),
             #                       step=epoch)
-            save_dir = "saved_models/lstm_prog"
+            save_dir = "saved_models/lstm_prog_one_segment"
             os.makedirs(save_dir, exist_ok=True)
             model_utils.save_checkpoint(
                 save_dir,
@@ -760,6 +763,7 @@ def infer_program(
     forecasted_programs = [[] for i in range(len(test_loader.dataset))]
 
     batch_id = 0
+    batch_size_all = -1
     for _, (_input, target, helpers) in tqdm(enumerate(test_loader)):
 
         cls = []
@@ -797,6 +801,8 @@ def infer_program(
 
         # Encoder
         batch_size = _input.shape[0]
+        if batch_size_all == -1:
+            batch_size_all = batch_size
         cls_batch_size = cls.shape[0]
         input_length = _input.shape[1]
         centerline_length = cls.shape[1]
@@ -821,7 +827,8 @@ def infer_program(
         # Reshape centerline tensor
         cls = cls.reshape(_input.shape[0], -1, cls.shape[-2], cls.shape[-1])
 
-        for t in range(3):
+        total_segments = 1
+        for t in range(total_segments):
 
             # Encode observed trajectory
             for ei in range(_input.shape[1]):
@@ -840,7 +847,8 @@ def infer_program(
             # Decode timestep and velocity
             prog_decoder_features = torch.cat([encoder_hidden[0], cls_encoder_hidden_pred], dim=1)
             prog_output = prog_decoder(prog_decoder_features)
-            timestep_pred = torch.nn.Sigmoid()(prog_output[:, 0]) * 30
+            # timestep_pred = torch.nn.Sigmoid()(prog_output[:, 0]) * 30
+            timestep_pred = prog_output[:, 0]
             velocity_pred = prog_output[:, -1]
 
             # Decode programs into trajectories and treat them as new inputs
@@ -848,10 +856,10 @@ def infer_program(
             new_input = []
             for i in range(_input.shape[0]):
                 new_input_i = exec_prog(_input[i].cpu().numpy(), centerline_pred[i].cpu().numpy(),
-                 timestep_pred[i].detach().cpu().numpy().round().astype(int), velocity_pred[i].detach().cpu().numpy())
+                timestep_pred[i].detach().cpu().numpy().round().astype(int), velocity_pred[i].detach().cpu().numpy())
                 new_input_i = torch.FloatTensor(new_input_i)
                 new_input.append(new_input_i)
-                forecasted_programs[batch_id * batch_size + i].append((
+                forecasted_programs[batch_id * batch_size_all + i].append((
                     int(centerline_pred_index[i].cpu()),
                     int(round(float(timestep_pred[i].long().cpu()))),
                     float(velocity_pred[i].detach().cpu())))
@@ -866,7 +874,7 @@ def infer_program(
 
     prep_data['PROG_PRED'] = forecasted_programs
     os.makedirs(forecasted_save_dir, exist_ok=True)
-    with open(os.path.join(forecasted_save_dir, f"test_prep.pkl"),
+    with open(os.path.join(forecasted_save_dir, f"test_prep_1_seg.pkl"),
               "wb") as f:
         pkl.dump(prep_data, f)
 
@@ -936,9 +944,13 @@ def main():
 
 
     # add the program data to the data_dict
-    new_data_train = pd.read_pickle('Traj/val_prep.pkl')
-    new_data_val = pd.read_pickle('Traj/val_prep.pkl')
-    test_prep = pd.read_pickle('Traj/val_prep.pkl')
+    # new_data_train = pd.read_pickle('Traj/val_prep.pkl')
+    # new_data_val = pd.read_pickle('Traj/val_prep.pkl')
+    # test_prep = pd.read_pickle('Traj/val_prep.pkl')
+
+    new_data_train = pd.read_pickle('Traj/val_1_seg.pkl')
+    new_data_val = pd.read_pickle('Traj/val_1_seg.pkl')
+    test_prep = pd.read_pickle('Traj/val_1_seg.pkl')
 
     # data_dict['train_helpers'].CANDIDATE_CENTERLINES = new_data_train.CANDIDATE_CENTERLINES
     # data_dict['val_helpers'].CANDIDATE_CENTERLINES = new_data_val.CANDIDATE_CENTERLINES
