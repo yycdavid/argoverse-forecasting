@@ -1,5 +1,105 @@
+import argparse
 import numpy as np
 from shapely.geometry import LineString, Point
+
+def parse_arguments():
+    """Arguments for running the baseline.
+
+    Returns:
+        parsed arguments
+
+    """
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--test_batch_size",
+                        type=int,
+                        default=1,
+                        help="Test batch size")
+    parser.add_argument("--model_path",
+                        required=False,
+                        type=str,
+                        help="path to the saved model")
+    parser.add_argument("--total_segments",
+                        default=1,
+                        type=int,
+                        help="Number of program segments")
+    parser.add_argument("--obs_len",
+                        default=20,
+                        type=int,
+                        help="Observed length of the trajectory")
+    parser.add_argument("--pred_len",
+                        default=30,
+                        type=int,
+                        help="Prediction Horizon")
+    parser.add_argument(
+        "--normalize",
+        action="store_true",
+        help="Normalize the trajectories if non-map baseline is used",
+    )
+    parser.add_argument(
+        "--use_delta",
+        action="store_true",
+        help="Train on the change in position, instead of absolute position",
+    )
+    parser.add_argument(
+        "--train_features",
+        default="Traj/forecasting_features_train.pkl",
+        type=str,
+        help="path to the file which has train features.",
+    )
+    parser.add_argument(
+        "--val_features",
+        default="Traj/forecasting_features_val.pkl",
+        type=str,
+        help="path to the file which has val features.",
+    )
+    parser.add_argument(
+        "--test_features",
+        default="Traj/forecasting_features_test.pkl",
+        type=str,
+        help="path to the file which has test features.",
+    )
+    parser.add_argument(
+        "--joblib_batch_size",
+        default=100,
+        type=int,
+        help="Batch size for parallel computation",
+    )
+    parser.add_argument("--wandb",
+                    action="store_true",
+                    help="Use wandb for logging")
+    parser.add_argument("--use_map",
+                        action="store_true",
+                        help="Use the map based features")
+    parser.add_argument("--use_social",
+                        action="store_true",
+                        help="Use social features")
+    parser.add_argument("--test",
+                        action="store_true",
+                        help="If true, only run the inference")
+    parser.add_argument("--train_batch_size",
+                        type=int,
+                        default=512,
+                        help="Training batch size")
+    parser.add_argument("--val_batch_size",
+                        type=int,
+                        default=512,
+                        help="Val batch size")
+    parser.add_argument("--end_epoch",
+                        type=int,
+                        default=5000,
+                        help="Last epoch")
+    parser.add_argument("--lr",
+                        type=float,
+                        default=0.001,
+                        help="Learning rate")
+    parser.add_argument(
+        "--traj_save_path",
+        required=False,
+        type=str,
+        help=
+        "path to the pickle file where forecasted trajectories will be saved.",
+    )
+    return parser.parse_args()
 
 def left_or_right(cl, p, p_proj, d):
     '''

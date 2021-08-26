@@ -1,8 +1,9 @@
 step = 0
 
 def main():
-    step = 2
+    global step
     foo() 
+    step += 1
     foo()
     
 def foo():

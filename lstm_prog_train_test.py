@@ -43,8 +43,9 @@ if use_cuda:
     device = torch.device("cuda")
 else:
     device = torch.device("cpu")
-global_step = 0
 
+# some global variable 
+global_step = 0
 best_loss = float("inf")
 prev_loss = best_loss
 decrement_counter = 0
@@ -54,111 +55,12 @@ np.random.seed(100)
 ROLLOUT_LENS = [1, 10, 30]
 PROGRAM_LENS = [1, 2, 3]
 
-def parse_arguments() -> Any:
-    """Arguments for running the baseline.
-
-    Returns:
-        parsed arguments
-
-    """
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--test_batch_size",
-                        type=int,
-                        default=1,
-                        help="Test batch size")
-    parser.add_argument("--model_path",
-                        required=False,
-                        type=str,
-                        help="path to the saved model")
-    parser.add_argument("--total_segments",
-                        default=1,
-                        type=int,
-                        help="Number of program segments")
-    parser.add_argument("--obs_len",
-                        default=20,
-                        type=int,
-                        help="Observed length of the trajectory")
-    parser.add_argument("--pred_len",
-                        default=30,
-                        type=int,
-                        help="Prediction Horizon")
-    parser.add_argument(
-        "--normalize",
-        action="store_true",
-        help="Normalize the trajectories if non-map baseline is used",
-    )
-    parser.add_argument(
-        "--use_delta",
-        action="store_true",
-        help="Train on the change in position, instead of absolute position",
-    )
-    parser.add_argument(
-        "--train_features",
-        default="Traj/forecasting_features_train.pkl",
-        type=str,
-        help="path to the file which has train features.",
-    )
-    parser.add_argument(
-        "--val_features",
-        default="Traj/forecasting_features_val.pkl",
-        type=str,
-        help="path to the file which has val features.",
-    )
-    parser.add_argument(
-        "--test_features",
-        default="Traj/forecasting_features_test.pkl",
-        type=str,
-        help="path to the file which has test features.",
-    )
-    parser.add_argument(
-        "--joblib_batch_size",
-        default=100,
-        type=int,
-        help="Batch size for parallel computation",
-    )
-    parser.add_argument("--wandb",
-                    action="store_true",
-                    help="Use wandb for logging")
-    parser.add_argument("--use_map",
-                        action="store_true",
-                        help="Use the map based features")
-    parser.add_argument("--use_social",
-                        action="store_true",
-                        help="Use social features")
-    parser.add_argument("--test",
-                        action="store_true",
-                        help="If true, only run the inference")
-    parser.add_argument("--train_batch_size",
-                        type=int,
-                        default=512,
-                        help="Training batch size")
-    parser.add_argument("--val_batch_size",
-                        type=int,
-                        default=512,
-                        help="Val batch size")
-    parser.add_argument("--end_epoch",
-                        type=int,
-                        default=5000,
-                        help="Last epoch")
-    parser.add_argument("--lr",
-                        type=float,
-                        default=0.001,
-                        help="Learning rate")
-    parser.add_argument(
-        "--traj_save_path",
-        required=False,
-        type=str,
-        help=
-        "path to the pickle file where forecasted trajectories will be saved.",
-    )
-    return parser.parse_args()
-
 
 def train(
-        train_loader: Any,
+        prep_data: Any, 
+        trajectory_loader: Any,
         epoch: int,
         criterion: Any,
-        logger: Any,
         encoder: Any,
         cls_encoder: Any, 
         combine_net: Any, 
@@ -173,7 +75,8 @@ def train(
         rollout_len: int = 30,
         use_traj: bool = False, 
         total_segments: int = 1,
-        mode: str = "Train"
+        mode: str = "Train",
+        
 ) -> None:
     """Train the lstm network.
 
@@ -196,9 +99,13 @@ def train(
     global best_loss
     global prev_loss 
     global decrement_counter 
+    
+    forecasted_programs = [[] for i in range(len(trajectory_loader.dataset))]
     total_loss = [] 
+    batch_id = 0
+    batch_size_all = -1
 
-    for _, (_input, target, helpers) in enumerate(train_loader):
+    for _, (_input, target, helpers) in enumerate(trajectory_loader):
 
         cls = []
         cls_num = []
@@ -253,6 +160,8 @@ def train(
 
         # Encoder
         batch_size = _input.shape[0]
+        if batch_size_all == -1:
+            batch_size_all = batch_size 
         cls_batch_size = cls.shape[0]
         input_length = _input.shape[1]
         centerline_length = cls.shape[1]
@@ -286,7 +195,6 @@ def train(
         mse_loss = nn.MSELoss()
 
         # Iteratively decode centerlines and compute losses
-        # for t in range(programs.shape[1]):
         for t in range(total_segments):
 
             # Encode observed trajectory
@@ -295,12 +203,6 @@ def train(
                 encoder_hidden = encoder(encoder_input, encoder_hidden)
 
             # Compute centerline cross-entropy loss
-
-            # Dot-product version
-            # centerline_scores = torch.softmax(torch.bmm(encoder_hidden[0].view(batch_size, 1, 16), 
-            # cls_encoder_hidden.view(batch_size, 10,16).transpose(2, 1)).squeeze(1), dim=1)
-
-            # Concatenation version
             centerline_scores = combine_net(encoder_hidden[0], cls_encoder_hidden.view(batch_size, 10, 16).view(batch_size, -1))
 
             # Masking invalid centerline scores
@@ -336,30 +238,20 @@ def train(
             velocity_loss = mse_loss(velocity_pred, velocity_gt)
             prog_loss += centerline_loss + timestep_loss / 100 + velocity_loss * 50
 
-            # Decode programs into trajectories and treat them as new inputs
-            # pbar = tqdm(total=_input.shape[0])
-            # def update(*a):
-            #     pbar.update()
-
-            # num_threads = 8
-            # ctx = mp.get_context('spawn')
-            # pool = ctx.Pool(num_threads)
-            # new_input = []
-            # results = [pool.apply_async(exec_prog, args=(_input[i].cpu().numpy(), centerline_pred[i].cpu().numpy(),
-            #      timestep_pred[i].long().detach().cpu().numpy(), velocity_pred[i].detach().cpu().numpy())) 
-            #      for i in range(_input.shape[0])]
-            # for result in results:
-            #     new_input.append(torch.FloatTensor(result.get()))
-            
             if total_segments != 1:
                 new_input = []
                 for i in range(_input.shape[0]):
                     new_input_i = exec_prog(_input[i].cpu().numpy(), centerline_pred[i].cpu().numpy(),
                     timestep_pred[i].detach().cpu().numpy().round().astype(int), velocity_pred[i].detach().cpu().numpy())
                     new_input_i = torch.FloatTensor(new_input_i)
-                    # print(timestep_pred[i].long().detach().cpu().numpy(), new_input_i.shape)
                     new_input.append(new_input_i)
-                # print(time.time() - start)
+
+                    # Store the predicted program
+                    if mode == "Test":
+                        forecasted_programs[batch_id * batch_size_all + i].append((
+                        int(centerline_pred_index[i].cpu()),
+                        int(round(float(timestep_pred[i].long().cpu()))),
+                        float(velocity_pred[i].detach().cpu())))
 
                 _input = torch.nn.utils.rnn.pad_sequence(new_input, batch_first=True).to(device)
 
@@ -387,6 +279,7 @@ def train(
 
                     # Use own predictions as inputs at next step
                     decoder_input = decoder_output
+        batch_id += 1
 
         if use_traj:
             loss = traj_loss + prog_loss 
@@ -478,6 +371,13 @@ def train(
                         f'{mode}/centerline_loss': centerline_loss.item(),
                         f'{mode}/velocity_loss': velocity_loss.item(),
                         f'{mode}/timestep_loss': timestep_loss.item()})
+    if mode == "Test":
+        forecasted_save_dir = 'Traj'
+        prep_data['PROG_PRED'] = forecasted_programs
+        os.makedirs(forecasted_save_dir, exist_ok=True)
+        with open(os.path.join(forecasted_save_dir, f"test_prep_{total_segments}_seg_new.pkl"),
+                "wb") as f:
+            pkl.dump(prep_data, f)
 
 def infer_program(
         prep_data: Any, 
@@ -503,8 +403,6 @@ def infer_program(
 
     """
     args = parse_arguments()
-    global best_loss
-    forecasted_trajectories = {}
     forecasted_programs = [[] for i in range(len(test_loader.dataset))]
 
     batch_id = 0
@@ -602,14 +500,6 @@ def infer_program(
             else:
                 timestep_pred = prog_output[:, 0]
             velocity_pred = prog_output[:, -1]
-
-            centerline_gt = programs[:, t, 0].long()
-            timestep_gt = programs[:, t, 1]
-            velocity_gt = programs[:, t, 2]
-
-            centerline_loss = ce_loss(centerline_scores, centerline_gt)
-            timestep_loss = mse_loss(timestep_pred, timestep_gt)
-            velocity_loss = mse_loss(velocity_pred, velocity_gt)
 
             # Decode programs into trajectories and treat them as new inputs
             # TODO: can we batch-ify this step?
@@ -723,7 +613,7 @@ def main():
               prog_decoder_optimizer)
         print("{} model loaded!".format(args.model_path))
         start_epoch = epoch + 1
-        start_rollout_idx = ROLLOUT_LENS.index(rollout_len) + 1
+        start_rollout_idx = PROGRAM_LENS.index(rollout_len) + 1
 
     else:
         start_epoch = 0
@@ -758,7 +648,10 @@ def main():
 
         print("Training begins ...")
 
-        decrement_counter = 0
+        global global_step
+        global best_loss
+        global prev_loss 
+        global decrement_counter 
 
         epoch = start_epoch
         global_start_time = time.time()
@@ -771,10 +664,10 @@ def main():
             while epoch < args.end_epoch:
                 start = time.time()
                 train(
+                    None,
                     train_loader,
                     epoch,
                     criterion,
-                    logger,
                     encoder,
                     cls_encoder,
                     combine_net, 
@@ -788,7 +681,8 @@ def main():
                     model_utils,
                     30, # disable rollout_length curriculum 
                     False, # do not use traj prediction for training
-                    total_segments=program_len
+                    total_segments=program_len,
+                    mode="Train"
                 )
                 end = time.time()
 
@@ -801,10 +695,10 @@ def main():
                     if epoch % 5 == 0:
                         start = time.time()
                         train(
+                            None,
                             val_loader,
                             epoch,
                             criterion,
-                            logger,
                             encoder,
                             cls_encoder,
                             decoder,
@@ -818,7 +712,8 @@ def main():
                             model_utils,
                             30,
                             False,
-                            total_segments=program_len
+                            total_segments=program_len,
+                            mode="Val"
                         )
                         end = time.time()
                         print(
@@ -849,10 +744,30 @@ def main():
         )
 
         with torch.no_grad():
-            infer_program(test_prep, test_loader, encoder, cls_encoder, combine_net,
-            decoder, prog_decoder, model_utils, 'Traj')
+            start = time.time()
+            train(
+                None,
+                test_loader,
+                epoch,
+                criterion,
+                encoder,
+                cls_encoder,
+                decoder,
+                combine_net, 
+                prog_decoder, 
+                encoder_optimizer,
+                cls_encoder_optimizer,
+                decoder_optimizer,
+                prog_decoder_optimizer,
+                combine_optimizer, 
+                model_utils,
+                rollout_len=30,
+                use_traj=False,
+                total_segments=3, # output the whole program
+                mode="Test"
+            )
+            end = time.time()
 
-        end = time.time()
         print(f"Test completed in {(end - start_time) / 60.0} mins")
         # print(f"Forecasted Trajectories saved at {args.traj_save_path}")
 
