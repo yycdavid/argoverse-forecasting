@@ -140,6 +140,70 @@ class ModelUtils:
             self,
             checkpoint_file: str,
             encoder: Any,
+            cls_encoder: Any,
+            combine_net: Any,
+            decoder: Any,
+            prog_decoder: Any, 
+            encoder_optimizer: Any,
+            cls_encoder_optimizer: Any, 
+            combine_net_optimizer: Any, 
+            decoder_optimizer: Any,
+            prog_decoder_optimizer: Any 
+    ) -> Tuple[int, int, float]:
+        """Load the checkpoint.
+
+        Args:
+            checkpoint_file: Path to checkpoint file
+            encoder: Encoder model
+            decoder: Decoder model 
+
+        Returns:
+            epoch: epoch when the model was saved.
+            rollout_len: horizon used
+            best_loss: loss when the checkpoint was saved
+
+        """
+        if os.path.isfile(checkpoint_file):
+            print("=> loading checkpoint '{}'".format(checkpoint_file))
+            checkpoint = torch.load(checkpoint_file)
+            epoch = checkpoint["epoch"]
+            global_step = checkpoint["global_step"]
+            best_loss = checkpoint["best_loss"]
+            rollout_len = checkpoint["rollout_len"]
+            if use_cuda:
+                encoder.load_state_dict(
+                    checkpoint["encoder_state_dict"])
+                cls_encoder.load_state_dict(
+                    checkpoint["cls_encoder_state_dict"])
+                combine_net.load_state_dict(
+                    checkpoint["combine_net_state_dict"])
+                decoder.load_state_dict(
+                    checkpoint["decoder_state_dict"])
+                prog_decoder.load_state_dict(
+                    checkpoint["prog_decoder_state_dict"])
+            else:
+                encoder.load_state_dict(checkpoint["encoder_state_dict"])
+                cls_encoder.load_state_dict(checkpoint["cls_encoder_state_dict"])
+                combine_net.load_state_dict(checkpoint["combine_net_state_dict"])
+                decoder.load_state_dict(checkpoint["decoder_state_dict"])
+                prog_decoder.load_state_dict(checkpoint["prog_decoder_state_dict"])
+            encoder_optimizer.load_state_dict(checkpoint["encoder_optimizer"])
+            cls_encoder_optimizer.load_state_dict(checkpoint["cls_encoder_optimizer"])
+            combine_net_optimizer.load_state_dict(checkpoint["cls_encoder_optimizer"])
+            decoder_optimizer.load_state_dict(checkpoint["decoder_optimizer"])
+            prog_decoder_optimizer.load_state_dict(checkpoint["prog_decoder_optimizer"])
+            print(
+                f"=> loaded checkpoint {checkpoint_file} (epoch: {epoch}, loss: {best_loss})"
+            )
+        else:
+            print(f"=> no checkpoint found at {checkpoint_file}")
+
+        return epoch, rollout_len, best_loss
+
+    def load_checkpoint_baseline(
+            self,
+            checkpoint_file: str,
+            encoder: Any,
             decoder: Any,
             encoder_optimizer: Any,
             decoder_optimizer: Any,
@@ -161,16 +225,18 @@ class ModelUtils:
             print("=> loading checkpoint '{}'".format(checkpoint_file))
             checkpoint = torch.load(checkpoint_file)
             epoch = checkpoint["epoch"]
+            global_step = checkpoint["global_step"]
             best_loss = checkpoint["best_loss"]
             rollout_len = checkpoint["rollout_len"]
             if use_cuda:
-                encoder.module.load_state_dict(
+                encoder.load_state_dict(
                     checkpoint["encoder_state_dict"])
-                decoder.module.load_state_dict(
+                decoder.load_state_dict(
                     checkpoint["decoder_state_dict"])
             else:
                 encoder.load_state_dict(checkpoint["encoder_state_dict"])
                 decoder.load_state_dict(checkpoint["decoder_state_dict"])
+
             encoder_optimizer.load_state_dict(checkpoint["encoder_optimizer"])
             decoder_optimizer.load_state_dict(checkpoint["decoder_optimizer"])
             print(

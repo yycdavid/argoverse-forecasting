@@ -55,18 +55,18 @@ def get_data(args: Any, baseline_key: str
 
     if args.train_features:
         print("Loading Train data ...")
-        # train_input, train_output, train_df = load_and_preprocess_data(
-        #     input_features,
-        #     output_features,
-        #     args,
-        #     args.train_features,
-        #     mode="train")
         train_input, train_output, train_df = load_and_preprocess_data(
             input_features,
             output_features,
             args,
-            args.val_features,
-            mode="val")
+            args.train_features,
+            mode="train")
+        # train_input, train_output, train_df = load_and_preprocess_data(
+        #     input_features,
+        #     output_features,
+        #     args,
+        #     args.val_features,
+        #     mode="val")
         print("Train Size: {}".format(train_input.shape[0]))
     else:
         train_input, train_output, train_df = [None] * 3
@@ -613,16 +613,21 @@ def get_abs_traj(
     output = output.copy()[s:e]
 
     # Convert relative to absolute
+    # Jason: this was changed to be consistent with get_relative_distance
     if args.use_delta:
         reference = helpers["REFERENCE"].copy()[s:e]
         input_[:, 0, :2] = reference
+        # for i in range(1, obs_len):
+        #     input_[:, i, :2] = input_[:, i, :2] + input_[:, i - 1, :2]
+
+        # output[:, 0, :2] = output[:, 0, :2] + input_[:, -1, :2]
+        # for i in range(1, pred_len):
+        #     output[:, i, :2] = output[:, i, :2] + output[:, i - 1, :2]
         for i in range(1, obs_len):
-            input_[:, i, :2] = input_[:, i, :2] + input_[:, i - 1, :2]
-
-        output[:, 0, :2] = output[:, 0, :2] + input_[:, -1, :2]
-        for i in range(1, pred_len):
-            output[:, i, :2] = output[:, i, :2] + output[:, i - 1, :2]
-
+            input_[:, i, :2] = input_[:, i, :2] + reference 
+        for i in range(0, pred_len):
+            output[:, i, :2] = output[:, i, :2] + reference
+            
     # Convert centerline frame (n,t) to absolute frame (x,y)
     if args.use_map:
         centerlines = helpers["CENTERLINE"].copy()[s:e]

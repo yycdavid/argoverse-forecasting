@@ -413,13 +413,14 @@ def validate(
         elif args.use_social:
             save_dir = "saved_models/lstm_social"
         else:
-            save_dir = "saved_models/lstm"
+            save_dir = "saved_models/lstm_baseline"
 
         os.makedirs(save_dir, exist_ok=True)
         model_utils.save_checkpoint(
             save_dir,
             {
                 "epoch": epoch + 1,
+                "global_step": global_step,
                 "rollout_len": rollout_len,
                 "encoder_state_dict": encoder.state_dict(),
                 "decoder_state_dict": decoder.state_dict(),
@@ -738,9 +739,10 @@ def main():
 
     # If model_path provided, resume from saved checkpoint
     if args.model_path is not None and os.path.isfile(args.model_path):
-        epoch, rollout_len, _ = model_utils.load_checkpoint(
+        epoch, rollout_len, _ = model_utils.load_checkpoint_baseline(
             args.model_path, encoder, decoder, encoder_optimizer,
             decoder_optimizer)
+        print("{} model loaded!".format(args.model_path))
         start_epoch = epoch + 1
         start_rollout_idx = ROLLOUT_LENS.index(rollout_len) + 1
 
@@ -837,12 +839,15 @@ def main():
 
         temp_save_dir = tempfile.mkdtemp()
 
+        temp_save_dir = 'Traj/baseline_trajs/'
+        os.makedirs(temp_save_dir, exist_ok=True)
+        args.traj_save_path = 'Traj/val_prep_baseline.pkl'
         test_size = data_dict["test_input"].shape[0]
         test_data_subsets = baseline_utils.get_test_data_dict_subset(
             data_dict, args)
 
         # test_batch_size should be lesser than joblib_batch_size
-        Parallel(n_jobs=-2, verbose=2)(
+        Parallel(n_jobs=1, verbose=2)(
             delayed(infer_helper)(test_data_subsets[i], i, encoder, decoder,
                                   model_utils, temp_save_dir)
             for i in range(0, test_size, args.joblib_batch_size))

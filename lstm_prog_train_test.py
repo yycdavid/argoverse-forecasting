@@ -44,11 +44,15 @@ if use_cuda:
 else:
     device = torch.device("cpu")
 global_step = 0
+
 best_loss = float("inf")
+prev_loss = best_loss
+decrement_counter = 0
+
 np.random.seed(100)
 
 ROLLOUT_LENS = [1, 10, 30]
-
+PROGRAM_LENS = [1, 2, 3]
 
 def parse_arguments() -> Any:
     """Arguments for running the baseline.
@@ -66,6 +70,10 @@ def parse_arguments() -> Any:
                         required=False,
                         type=str,
                         help="path to the saved model")
+    parser.add_argument("--total_segments",
+                        default=1,
+                        type=int,
+                        help="Number of program segments")
     parser.add_argument("--obs_len",
                         default=20,
                         type=int,
@@ -146,66 +154,6 @@ def parse_arguments() -> Any:
     return parser.parse_args()
 
 
-def compute_prog(_input, encoder, encoder_hidden, combine_net, prog_decoder, programs):
-    # Encode observed trajectory
-    for ei in range(_input.shape[1]):
-        encoder_input = _input[:, ei, :]
-        encoder_hidden = encoder(encoder_input, encoder_hidden)
-
-    # Compute centerline cross-entropy loss
-
-    # Dot-product version
-    # centerline_scores = torch.softmax(torch.bmm(encoder_hidden[0].view(batch_size, 1, 16), 
-    # cls_encoder_hidden.view(batch_size, 10,16).transpose(2, 1)).squeeze(1), dim=1)
-
-    # Concatenation version
-    centerline_scores = combine_net(encoder_hidden[0], cls_encoder_hidden.view(batch_size, 10, 16).view(batch_size, -1))
-    centerline_gt = programs[:, t, 0].long()
-    centerline_loss = ce_loss(centerline_scores, centerline_gt)
-
-    # Choose predicted centerline and its feature
-    centerline_pred_index = torch.argmax(centerline_scores, dim=1)
-    cls_encoder_hidden = cls_encoder_hidden.reshape(batch_size, -1, cls_encoder_hidden.shape[-1])
-    centerline_pred = cls[np.arange(batch_size), centerline_pred_index]
-
-    cls_encoder_hidden_pred = cls_encoder_hidden[np.arange(batch_size), centerline_pred_index]
-
-    # Decode timestep and velocity
-    prog_decoder_features = torch.cat([encoder_hidden[0], cls_encoder_hidden_pred], dim=1)
-    prog_output = prog_decoder(prog_decoder_features)
-    # timestep_scores = prog_output[:, :-1]
-    # timestep_pred = torch.argmax(timestep_scores, dim=1)
-    timestep_pred = prog_output[:, 0]
-    velocity_pred = prog_output[:, -1]
-
-    timestep_gt = programs[:, t, 1]
-    velocity_gt = programs[:, t, 2]
-
-    # Aggregate all losses
-    # timestep_loss = ce_loss(timestep_scores, timestep_gt)
-    timestep_loss = mse_loss(timestep_pred, timestep_gt)
-    velocity_loss = mse_loss(velocity_pred, velocity_gt)
-    prog_loss += centerline_loss + timestep_loss / 100 + velocity_loss
-
-    # Decode programs into trajectories and treat them as new inputs
-    # TODO: can we batch-ify this step?
-
-    new_input = []
-    for i in range(_input.shape[0]):
-        new_input_i = exec_prog(_input[i].cpu().numpy(), centerline_pred[i].cpu().numpy(),
-            timestep_pred[i].cpu().numpy(), velocity_pred[i].detach().cpu().numpy())
-        new_input_i = np.array(new_input_i)
-        new_input.append(new_input_i)
-
-    # from ipdb import set_trace
-    # set_trace()
-    _input = torch.FloatTensor(new_input).to(device)
-
-    if len(_input.size()) == 2:
-        _input = _input.unsqueeze(0)
-
-    return _input
-
 def train(
         train_loader: Any,
         epoch: int,
@@ -224,6 +172,8 @@ def train(
         model_utils: ModelUtils,
         rollout_len: int = 30,
         use_traj: bool = False, 
+        total_segments: int = 1,
+        mode: str = "Train"
 ) -> None:
     """Train the lstm network.
 
@@ -243,6 +193,10 @@ def train(
     """
     args = parse_arguments()
     global global_step
+    global best_loss
+    global prev_loss 
+    global decrement_counter 
+    total_loss = [] 
 
     for _, (_input, target, helpers) in enumerate(train_loader):
 
@@ -278,19 +232,24 @@ def train(
         target = target.to(device)
         programs = programs.to(device)
 
-        # Set to train mode
-        encoder.train()
-        cls_encoder.train()
-        decoder.train()
-        prog_decoder.train()
+        if mode == "Train":
+            encoder.train()
+            cls_encoder.train()
+            decoder.train()
+            prog_decoder.train()
 
-        # Zero the gradients
-        if use_traj:
-            decoder_optimizer.zero_grad()
-        encoder_optimizer.zero_grad()
-        cls_encoder_optimizer.zero_grad()
-        combine_optimizer.zero_grad()
-        prog_decoder_optimizer.zero_grad()
+            # Zero the gradients
+            if use_traj:
+                decoder_optimizer.zero_grad()
+            encoder_optimizer.zero_grad()
+            cls_encoder_optimizer.zero_grad()
+            combine_optimizer.zero_grad()
+            prog_decoder_optimizer.zero_grad()
+        else:
+            encoder.val()
+            cls_encoder.val()
+            decoder.val()
+            prog_decoder.val()   
 
         # Encoder
         batch_size = _input.shape[0]
@@ -328,7 +287,6 @@ def train(
 
         # Iteratively decode centerlines and compute losses
         # for t in range(programs.shape[1]):
-        total_segments = 1
         for t in range(total_segments):
 
             # Encode observed trajectory
@@ -355,6 +313,7 @@ def train(
             cls_encoder_hidden = cls_encoder_hidden.reshape(batch_size, -1, cls_encoder_hidden.shape[-1])
             centerline_pred = cls[np.arange(batch_size), centerline_pred_index]
 
+            # Store the feature of the selected centerlines
             cls_encoder_hidden_pred = cls_encoder_hidden[np.arange(batch_size), centerline_pred_index]
 
             # Decode timestep and velocity
@@ -362,8 +321,10 @@ def train(
             prog_output = prog_decoder(prog_decoder_features)
             # timestep_scores = prog_output[:, :-1]
             # timestep_pred = torch.argmax(timestep_scores, dim=1)
-            # timestep_pred = torch.nn.Sigmoid()(prog_output[:, 0]) * 30
-            timestep_pred = prog_output[:, 0]
+            if total_segments != 1:
+                timestep_pred = torch.nn.Sigmoid()(prog_output[:, 0]) * 30
+            else:
+                timestep_pred = prog_output[:, 0]
             velocity_pred = prog_output[:, -1]
 
             timestep_gt = programs[:, t, 1]
@@ -376,9 +337,6 @@ def train(
             prog_loss += centerline_loss + timestep_loss / 100 + velocity_loss * 50
 
             # Decode programs into trajectories and treat them as new inputs
-
-            start = time.time()
-
             # pbar = tqdm(total=_input.shape[0])
             # def update(*a):
             #     pbar.update()
@@ -437,27 +395,61 @@ def train(
 
         # # Get average loss for pred_len
         # loss = loss / rollout_len
+        total_loss.append(loss) 
 
-        # Backpropagate
-        loss.backward()
+        if mode == "Train":
+            # Backpropagate
+            loss.backward()
 
-        encoder_optimizer.step()
-        cls_encoder_optimizer.step()
-        combine_optimizer.step() 
-        prog_decoder_optimizer.step()
-        if use_traj:
-            decoder_optimizer.step()
+            encoder_optimizer.step()
+            cls_encoder_optimizer.step()
+            combine_optimizer.step() 
+            prog_decoder_optimizer.step()
+            if use_traj:
+                decoder_optimizer.step()
 
+        if mode == "Train":
+            if global_step % 100 == 0:
+                # Log results
+                print(
+                    f"Train -- Epoch:{epoch}, Step:{global_step}, Loss:{loss}, Timestep: {timestep_loss:.2f}, Centerline: {centerline_loss:.2f}, Velocity: {velocity_loss:.2f}")
 
-        if global_step % 100 == 0:
-            # Log results
-            print(
-                f"Train -- Epoch:{epoch}, Step:{global_step}, Loss:{loss}, Timestep: {timestep_loss:.2f}, Centerline: {centerline_loss:.2f}, Velocity: {velocity_loss:.2f}")
+                # logger.scalar_summary(tag="Train/loss",
+                #                       value=loss.item(),
+                #                       step=epoch)
+                save_dir = "saved_models/lstm_prog_{}segment_train".format(total_segments)
+                os.makedirs(save_dir, exist_ok=True)
+                model_utils.save_checkpoint(
+                    save_dir,
+                    {
+                        "epoch": epoch + 1,
+                        "global_step": global_step, 
+                        "rollout_len": rollout_len,
+                        "encoder_state_dict": encoder.state_dict(),
+                        "cls_encoder_state_dict": cls_encoder.state_dict(),
+                        "combine_net_state_dict": combine_net.state_dict(), 
+                        "decoder_state_dict": decoder.state_dict(),
+                        "prog_decoder_state_dict": prog_decoder.state_dict(), 
+                        "best_loss": loss,
+                        "encoder_optimizer": encoder_optimizer.state_dict(),
+                        "cls_encoder_optimizer": cls_encoder_optimizer.state_dict(), 
+                        "decoder_optimizer": decoder_optimizer.state_dict(),
+                        "prog_decoder_optimizer": prog_decoder_optimizer.state_dict()
+                    },
+                )
+            global_step += 1
+            if args.wandb:
+                wandb.log({f'{mode}/loss': loss.item(),
+                            f'{mode}/centerline_loss': centerline_loss.item(),
+                            f'{mode}/velocity_loss': velocity_loss.item(),
+                            f'{mode}/timestep_loss': timestep_loss.item()})
 
-            # logger.scalar_summary(tag="Train/loss",
-            #                       value=loss.item(),
-            #                       step=epoch)
-            save_dir = "saved_models/lstm_prog_one_segment"
+    if mode == "Val":
+        val_loss = sum(total_loss) / len(total_loss)
+        if val_loss <= best_loss:
+            best_loss = val_loss 
+
+            save_dir = "saved_models/lstm_prog_{}segment_val".format(total_segments)
             os.makedirs(save_dir, exist_ok=True)
             model_utils.save_checkpoint(
                 save_dir,
@@ -467,273 +459,25 @@ def train(
                     "rollout_len": rollout_len,
                     "encoder_state_dict": encoder.state_dict(),
                     "cls_encoder_state_dict": cls_encoder.state_dict(),
+                    "combine_net_state_dict": combine_net.state_dict(), 
                     "decoder_state_dict": decoder.state_dict(),
                     "prog_decoder_state_dict": prog_decoder.state_dict(), 
-                    "best_loss": loss,
+                    "best_loss": val_loss,
                     "encoder_optimizer": encoder_optimizer.state_dict(),
                     "cls_encoder_optimizer": cls_encoder_optimizer.state_dict(), 
                     "decoder_optimizer": decoder_optimizer.state_dict(),
                     "prog_decoder_optimizer": prog_decoder_optimizer.state_dict()
                 },
             )
-            if args.wandb:
-                wandb.log({'Train/loss': loss.item(),
-                            'Train/centerline_loss': centerline_loss.item(),
-                            'Train/velocity_loss': velocity_loss.item(),
-                            'Train/timestep_loss': timestep_loss.item()})
-
-        global_step += 1
-
-
-def validate(
-        val_loader: Any,
-        epoch: int,
-        criterion: Any,
-        logger: Any,
-        encoder: Any,
-        cls_encoder: Any, 
-        combine_net: Any, 
-        decoder: Any,
-        prog_decoder: Any, 
-        encoder_optimizer: Any,
-        cls_encoder_optimizer: Any, 
-        decoder_optimizer: Any,
-        prog_decoder_optimizer: Any, 
-        combine_optimizer: Any,
-        model_utils: ModelUtils,
-        prev_loss: float,
-        decrement_counter: int,
-        rollout_len: int = 30,
-        use_traj: bool = False 
-) -> Tuple[float, int]:
-    """Validate the lstm network.
-
-    Args:
-        val_loader: DataLoader for the train set
-        epoch: epoch number
-        criterion: Loss criterion
-        logger: Tensorboard logger
-        encoder: Encoder network instance
-        decoder: Decoder network instance
-        encoder_optimizer: optimizer for the encoder network
-        decoder_optimizer: optimizer for the decoder network
-        model_utils: instance for ModelUtils class
-        prev_loss: Loss in the previous validation run
-        decrement_counter: keeping track of the number of consecutive times loss increased in the current rollout
-        rollout_len: current prediction horizon
-
-    """
-    args = parse_arguments()
-    global best_loss
-    total_loss = []
-
-    for i, (_input, target, helpers) in enumerate(val_loader):
-
-        cls = []
-        cls_num = [0]
-
-        # Pack all centerlines into one tensor
-        for j in range(len(helpers)):
-            cls_num.append(len(helpers[j][2]))
-            for k in range(10):
-                # Downsample centerlines by 10
-                if k < len(helpers[j][2]):
-                    cl_current = torch.FloatTensor(helpers[j][2][k])[::10, :]
-                # pad 0-sequence to ensure that each datum has the same number of centerlines
-                else:
-                    cl_current = torch.zeros((16,2))
-                cls.append(cl_current)
-
-        cls_num = cls_num[1:]
-        cls = torch.nn.utils.rnn.pad_sequence(cls, batch_first=True)
-
-        # programs: (batch_size, 3, 3)
-        programs = []
-        for j in range(len(helpers)):
-            programs.append(helpers[j][9])
-        programs = torch.tensor(programs)
-
-        _input = _input.to(device)
-        cls = cls.to(device)
-        target = target.to(device)
-        programs = programs.to(device)
-
-        # Set to train mode
-        encoder.train()
-        cls_encoder.train()
-        decoder.train()
-        prog_decoder.train()
-
-        # Zero the gradients
-        if use_traj:
-            decoder_optimizer.zero_grad()
-        encoder_optimizer.zero_grad()
-        cls_encoder_optimizer.zero_grad()
-        prog_decoder_optimizer.zero_grad()
-
-        # Encoder
-        batch_size = _input.shape[0]
-        cls_batch_size = cls.shape[0]
-        input_length = _input.shape[1]
-        centerline_length = cls.shape[1]
-        output_length = target.shape[1]
-        input_shape = _input.shape[2]
-
-        # Initialize encoder hidden state
-        encoder_hidden = model_utils.init_hidden(
-            batch_size,
-            encoder.module.hidden_size if use_cuda else encoder.hidden_size)
-
-        cls_encoder_hidden = model_utils.init_hidden(
-            cls_batch_size,
-            cls_encoder.module.hidden_size if use_cuda else cls_encoder.hidden_size)
-
-        # Encode centerlines
-        for ei in range(centerline_length):
-            cls_encoder_input = cls[:, ei, :]
-            cls_encoder_hidden = cls_encoder(cls_encoder_input, cls_encoder_hidden)
-        cls_encoder_hidden = cls_encoder_hidden[0]
-
-        # Reshape centerline tensor
-        cls = cls.reshape(_input.shape[0], -1, cls.shape[-2], cls.shape[-1])
-
-        # Initialize losses
-        loss = 0
-        traj_loss = 0
-        prog_loss = 0 
-        ce_loss = nn.CrossEntropyLoss() 
-        mse_loss = nn.MSELoss()
-
-        # Iteratively decode centerlines and compute losses
-        # for t in range(programs.shape[1]):
-        for t in range(1):
-            # Encode observed trajectory
-            for ei in range(_input.shape[1]):
-                encoder_input = _input[:, ei, :]
-                encoder_hidden = encoder(encoder_input, encoder_hidden)
-
-            # Compute centerline cross-entropy loss
-            # centerline_scores = torch.softmax(torch.matmul(encoder_hidden[0], cls_encoder_hidden.view(-1, cls_encoder_hidden.shape[-1]).transpose(1,0)), dim=1)
-            # TODO: perhaps concatenate the two hidden features
-            centerline_scores = torch.softmax(torch.bmm(encoder_hidden[0].view(batch_size, 1, 16),
-             cls_encoder_hidden.view(batch_size, 10,16).transpose(2, 1)).squeeze(1), dim=1)
-            centerline_gt = programs[:, t, 0].long()
-            centerline_loss = ce_loss(centerline_scores, centerline_gt)
-
-            # Choose predicted centerline and its feature
-            centerline_pred_index = torch.argmax(centerline_scores, dim=1)
-            cls_encoder_hidden = cls_encoder_hidden.reshape(batch_size, -1, cls_encoder_hidden.shape[-1])
-            centerline_pred = cls[np.arange(batch_size), centerline_pred_index]
-            cls_encoder_hidden_pred = cls_encoder_hidden[np.arange(batch_size), centerline_pred_index]
-
-            # Decode timestep and velocity
-            prog_decoder_features = torch.cat([encoder_hidden[0], cls_encoder_hidden_pred], dim=1)
-            prog_output = prog_decoder(prog_decoder_features)
-            # timestep_scores = prog_output[:, :-1]
-            # timestep_pred = torch.argmax(timestep_scores, dim=1)
-            timestep_pred = prog_output[:, 0]
-            velocity_pred = prog_output[:, -1]
-
-            timestep_gt = programs[:, t, 1]
-            velocity_gt = programs[:, t, 2]
-
-            # Aggregate all losses
-            # timestep_loss = ce_loss(timestep_scores, timestep_gt)
-            timestep_loss = mse_loss(timestep_pred, timestep_gt)
-            velocity_loss = mse_loss(velocity_pred, velocity_gt)
-            prog_loss += centerline_loss + timestep_loss + velocity_loss
-
-            # print("centerline loss: {centerline_loss}, timestep_loss: {timestep_loss}, velocity_loss: {velocity_loss}")
-            # Decode programs into trajectories and treat them as new inputs
-            # TODO: can we batch-ify this step?
-
-            # new_input = []
-            # for i in range(_input.shape[0]):
-            #     new_input_i = exec_prog(_input[i].cpu().numpy(), centerline_pred[i].cpu().numpy(), timestep_pred[i].cpu().numpy(), velocity_pred[i].detach().cpu().numpy())
-            #     new_input_i = np.array(new_input_i)
-            #     new_input.append(new_input_i)
-            # _input = torch.FloatTensor(new_input).to(device)
-            
-            # Deal with the special case of timestep = 0
-            # if len(_input.size()) == 2:
-            #     _input = _input.unsqueeze(0) 
-
-            # Decode trajectories if used for training
-            if use_traj and t == 0:
-                # Initialize decoder input with last coordinate in encoder
-                decoder_input = encoder_input[:, :2]
-
-                # Initialize decoder hidden state as encoder hidden state
-                decoder_hidden = encoder_hidden
-                decoder_outputs = torch.zeros(target.shape).to(device)
-
-                # Decode hidden state in future trajectory
-                for di in range(rollout_len):
-                    decoder_output, decoder_hidden = decoder(decoder_input,
-                                                            decoder_hidden)
-                    decoder_outputs[:, di, :] = decoder_output
-
-                    # Update loss
-                    traj_loss += criterion(decoder_output[:, :2], target[:, di, :2])
-
-                    # Use own predictions as inputs at next step
-                    decoder_input = decoder_output
-
-        if use_traj:
-            loss = loss + prog_loss 
+        if val_loss <= prev_loss:
+            decrement_counter = 0
         else:
-            loss = prog_loss
-
-        # # Get average loss for pred_len
-        # loss = loss / output_length
-        total_loss.append(loss)
-
-        if i % 10 == 0:
-            cprint(
-                f"Val -- Epoch:{epoch}, loss:{loss}, Rollout: {rollout_len}",
-                color="green",
-            )
-
-    # Save
-    val_loss = sum(total_loss) / len(total_loss)
-
-    if val_loss <= best_loss:
-        best_loss = val_loss
-        save_dir = "saved_models/lstm_prog"
-
-        os.makedirs(save_dir, exist_ok=True)
-        model_utils.save_checkpoint(
-            save_dir,
-            {
-                "epoch": epoch + 1,
-                "rollout_len": rollout_len,
-                "encoder_state_dict": encoder.state_dict(),
-                "cls_encoder_state_dict": cls_encoder.state_dict(),
-                "decoder_state_dict": decoder.state_dict(),
-                "prog_decoder_state_dict": prog_decoder.state_dict(), 
-                "best_loss": val_loss,
-                "encoder_optimizer": encoder_optimizer.state_dict(),
-                "cls_encoder_optimizer": cls_encoder_optimizer.state_dict(), 
-                "decoder_optimizer": decoder_optimizer.state_dict(),
-                "prog_decoder_optimizer": prog_decoder_optimizer.state_dict()
-            },
-        )
-
-    # logger.scalar_summary(tag="Val/loss", value=val_loss.item(), step=epoch)
-    if args.wandb:
-        wandb.log({'Val/loss': loss.item(),
-                            'Val/centerline_loss': centerline_loss.item(),
-                            'Val/velocity_loss': velocity_loss.item(),
-                            'Val/timestep_loss': timestep_loss.item()})
-
-    # Keep track of the loss to change preiction horizon
-    if val_loss <= prev_loss:
-        decrement_counter = 0
-    else:
-        decrement_counter += 1
-
-    return val_loss, decrement_counter
-
+            decrement_counter += 1
+        if args.wandb:
+            wandb.log({f'{mode}/loss': loss.item(),
+                        f'{mode}/centerline_loss': centerline_loss.item(),
+                        f'{mode}/velocity_loss': velocity_loss.item(),
+                        f'{mode}/timestep_loss': timestep_loss.item()})
 
 def infer_program(
         prep_data: Any, 
@@ -743,8 +487,9 @@ def infer_program(
         combine_net: Any,  
         decoder: DecoderRNN,
         prog_decoder: Any, 
-        forecasted_save_dir: str,
         model_utils: ModelUtils,
+        forecasted_save_dir: str,
+        total_segments: int = 1
 ):
     """Infer function for program-based LSTM baselines.
 
@@ -764,6 +509,7 @@ def infer_program(
 
     batch_id = 0
     batch_size_all = -1
+    correct = 0
     for _, (_input, target, helpers) in tqdm(enumerate(test_loader)):
 
         cls = []
@@ -785,13 +531,16 @@ def infer_program(
         cls = torch.nn.utils.rnn.pad_sequence(cls, batch_first=True)
         cls_mask = (torch.arange(10)[None, :] < cls_num[:, None])
 
+        # programs: (batch_size, 3, 3)
+        programs = []
+        for j in range(len(helpers)):
+            programs.append(helpers[j][9])
+        programs = torch.tensor(programs)
+
         _input = _input.to(device)
-
-        batch_helpers = list(zip(*helpers))
-
-        helpers_dict = {}
-        for k, v in config.LSTM_HELPER_DICT_IDX.items():
-            helpers_dict[k] = batch_helpers[v]
+        cls = cls.to(device)
+        target = target.to(device)
+        programs = programs.to(device)
 
         # Set to eval mode
         encoder.eval()
@@ -827,7 +576,9 @@ def infer_program(
         # Reshape centerline tensor
         cls = cls.reshape(_input.shape[0], -1, cls.shape[-2], cls.shape[-1])
 
-        total_segments = 1
+        ce_loss = nn.CrossEntropyLoss() 
+        mse_loss = nn.MSELoss()
+
         for t in range(total_segments):
 
             # Encode observed trajectory
@@ -837,7 +588,6 @@ def infer_program(
 
             centerline_scores = combine_net(encoder_hidden[0], cls_encoder_hidden.view(batch_size, 10, 16).view(batch_size, -1))
             centerline_scores[~cls_mask] = float('-inf')
-
             centerline_pred_index = torch.argmax(centerline_scores, dim=1)
             cls_encoder_hidden = cls_encoder_hidden.reshape(batch_size, -1, cls_encoder_hidden.shape[-1])
             centerline_pred = cls[np.arange(batch_size), centerline_pred_index]
@@ -847,9 +597,19 @@ def infer_program(
             # Decode timestep and velocity
             prog_decoder_features = torch.cat([encoder_hidden[0], cls_encoder_hidden_pred], dim=1)
             prog_output = prog_decoder(prog_decoder_features)
-            # timestep_pred = torch.nn.Sigmoid()(prog_output[:, 0]) * 30
-            timestep_pred = prog_output[:, 0]
+            if total_segments != 1:
+                timestep_pred = torch.nn.Sigmoid()(prog_output[:, 0]) * 30
+            else:
+                timestep_pred = prog_output[:, 0]
             velocity_pred = prog_output[:, -1]
+
+            centerline_gt = programs[:, t, 0].long()
+            timestep_gt = programs[:, t, 1]
+            velocity_gt = programs[:, t, 2]
+
+            centerline_loss = ce_loss(centerline_scores, centerline_gt)
+            timestep_loss = mse_loss(timestep_pred, timestep_gt)
+            velocity_loss = mse_loss(velocity_pred, velocity_gt)
 
             # Decode programs into trajectories and treat them as new inputs
             # TODO: can we batch-ify this step?
@@ -874,46 +634,9 @@ def infer_program(
 
     prep_data['PROG_PRED'] = forecasted_programs
     os.makedirs(forecasted_save_dir, exist_ok=True)
-    with open(os.path.join(forecasted_save_dir, f"test_prep_1_seg.pkl"),
+    with open(os.path.join(forecasted_save_dir, f"test_prep_{total_segments}_seg_new.pkl"),
               "wb") as f:
         pkl.dump(prep_data, f)
-
-
-def infer_helper(
-        test_prep: Any,
-        test_loader: Any, 
-        encoder: EncoderRNN,
-        cls_encoder: Any, 
-        combine_net: Any, 
-        decoder: DecoderRNN,
-        prog_decoder: Any, 
-        model_utils: ModelUtils,
-        forecasted_save_dir: str,
-):
-    """Run inference on the current joblib batch.
-
-    Args:
-        curr_data_dict: Data dictionary for the current joblib batch
-        start_idx: Start idx of the current joblib batch
-        encoder: Encoder network instance
-        decoder: Decoder network instance
-        model_utils: ModelUtils instance
-        forecasted_save_dir: Directory where forecasted trajectories are to be saved
-
-    """
-    args = parse_arguments()
-
-    infer_program(
-        test_prep, 
-        test_loader,
-        encoder,
-        cls_encoder,
-        combine_net,  
-        decoder,
-        prog_decoder, 
-        forecasted_save_dir,
-        model_utils,
-    )
 
 def main():
     """Main."""
@@ -942,15 +665,15 @@ def main():
     # Get data
     data_dict = baseline_utils.get_data(args, baseline_key)
 
-
     # add the program data to the data_dict
-    # new_data_train = pd.read_pickle('Traj/val_prep.pkl')
-    # new_data_val = pd.read_pickle('Traj/val_prep.pkl')
-    # test_prep = pd.read_pickle('Traj/val_prep.pkl')
-
-    new_data_train = pd.read_pickle('Traj/val_1_seg.pkl')
-    new_data_val = pd.read_pickle('Traj/val_1_seg.pkl')
-    test_prep = pd.read_pickle('Traj/val_1_seg.pkl')
+    if args.total_segments == 3:
+        new_data_train = pd.read_pickle('Traj/train_prep.pkl')
+        new_data_val = pd.read_pickle('Traj/val_prep.pkl')
+        test_prep = pd.read_pickle('Traj/val_prep.pkl')
+    elif args.total_segments == 1:
+        new_data_train = pd.read_pickle('Traj/train_1_seg.pkl')
+        new_data_val = pd.read_pickle('Traj/val_1_seg.pkl')
+        test_prep = pd.read_pickle('Traj/val_1_seg.pkl')
 
     # data_dict['train_helpers'].CANDIDATE_CENTERLINES = new_data_train.CANDIDATE_CENTERLINES
     # data_dict['val_helpers'].CANDIDATE_CENTERLINES = new_data_val.CANDIDATE_CENTERLINES
@@ -993,8 +716,11 @@ def main():
     # If model_path provided, resume from saved checkpoint
     if args.model_path is not None and os.path.isfile(args.model_path):
         epoch, rollout_len, _ = model_utils.load_checkpoint(
-            args.model_path, encoder, decoder, encoder_optimizer,
-            decoder_optimizer)
+            args.model_path, encoder, cls_encoder, combine_net,
+            decoder, prog_decoder,
+             encoder_optimizer, cls_encoder_optimizer, combine_optimizer,
+             decoder_optimizer,
+              prog_decoder_optimizer)
         print("{} model loaded!".format(args.model_path))
         start_epoch = epoch + 1
         start_rollout_idx = ROLLOUT_LENS.index(rollout_len) + 1
@@ -1036,8 +762,8 @@ def main():
 
         epoch = start_epoch
         global_start_time = time.time()
-        for i in range(start_rollout_idx, len(ROLLOUT_LENS)):
-            rollout_len = ROLLOUT_LENS[i]
+        for i in range(start_rollout_idx, len(PROGRAM_LENS)):
+            program_len = PROGRAM_LENS[i]
             # logger = Logger(log_dir, name="{}".format(rollout_len))
             logger = None
             best_loss = float("inf")
@@ -1062,46 +788,46 @@ def main():
                     model_utils,
                     30, # disable rollout_length curriculum 
                     False, # do not use traj prediction for training
+                    total_segments=program_len
                 )
                 end = time.time()
 
-                # print(
-                #     f"Training epoch completed in {(end - start) / 60.0} mins, Total time: {(end - global_start_time) / 60.0} mins"
-                # )
+                print(
+                    f"Training epoch completed in {(end - start) / 60.0} mins, Total time: {(end - global_start_time) / 60.0} mins"
+                )
 
                 epoch += 1
-                # with torch.no_grad():
-                #     if epoch % 5 == 0:
-                #         start = time.time()
-                #         prev_loss, decrement_counter = validate(
-                #             val_loader,
-                #             epoch,
-                #             criterion,
-                #             logger,
-                #             encoder,
-                #             cls_encoder,
-                #             decoder,
-                #             combine_net, 
-                #             prog_decoder, 
-                #             encoder_optimizer,
-                #             cls_encoder_optimizer,
-                #             decoder_optimizer,
-                #             prog_decoder_optimizer,
-                #             combine_optimizer, 
-                #             model_utils,
-                #             prev_loss,
-                #             decrement_counter,
-                #             rollout_len,
-                #             False,
-                #         )
-                #         end = time.time()
-                #         print(
-                #             f"Validation completed in {(end - start) / 60.0} mins, Total time: {(end - global_start_time) / 60.0} mins"
-                #         )
+                with torch.no_grad():
+                    if epoch % 5 == 0:
+                        start = time.time()
+                        train(
+                            val_loader,
+                            epoch,
+                            criterion,
+                            logger,
+                            encoder,
+                            cls_encoder,
+                            decoder,
+                            combine_net, 
+                            prog_decoder, 
+                            encoder_optimizer,
+                            cls_encoder_optimizer,
+                            decoder_optimizer,
+                            prog_decoder_optimizer,
+                            combine_optimizer, 
+                            model_utils,
+                            30,
+                            False,
+                            total_segments=program_len
+                        )
+                        end = time.time()
+                        print(
+                            f"Validation completed in {(end - start) / 60.0} mins, Total time: {(end - global_start_time) / 60.0} mins"
+                        )
 
-                #         # If val loss increased 3 times consecutively, go to next rollout length
-                #         if decrement_counter > 2:
-                #             break
+                        # If val loss increased 3 times consecutively, go to next rollout length
+                        if decrement_counter > 2:
+                            break
 
     else:
         start_time = time.time()
@@ -1123,16 +849,8 @@ def main():
         )
 
         with torch.no_grad():
-            infer_helper(test_prep, test_loader, encoder, cls_encoder, combine_net,
+            infer_program(test_prep, test_loader, encoder, cls_encoder, combine_net,
             decoder, prog_decoder, model_utils, 'Traj')
-        # test_batch_size should be lesser than joblib_batch_size
-        # Parallel(n_jobs=-2, verbose=2)(
-        #     delayed(infer_helper)(test_data_subsets[i], i, encoder, decoder,
-        #                           model_utils, temp_save_dir)
-        #     for i in range(0, test_size, args.joblib_batch_size))
-
-        # baseline_utils.merge_saved_traj(temp_save_dir, args.traj_save_path)
-        # shutil.rmtree(temp_save_dir)
 
         end = time.time()
         print(f"Test completed in {(end - start_time) / 60.0} mins")
