@@ -701,7 +701,7 @@ def main():
 
                 epoch += 1
                 with torch.no_grad():
-                    if epoch % 1 == 0:
+                    if epoch % 3 == 0:
                         start = time.time()
                         train(
                             None,
