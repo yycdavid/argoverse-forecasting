@@ -105,6 +105,19 @@ def train(
     batch_id = 0
     batch_size_all = -1
 
+    if mode == "Train":
+        encoder.train()
+        cls_encoder.train()
+        combine_net.train()
+        decoder.train()
+        prog_decoder.train()
+    else:
+        encoder.eval()
+        cls_encoder.eval()
+        combine_net.eval()
+        decoder.eval()
+        prog_decoder.eval()
+
     for _, (_input, target, helpers) in enumerate(trajectory_loader):
 
         cls = []
@@ -140,23 +153,12 @@ def train(
         programs = programs.to(device)
 
         if mode == "Train":
-            encoder.train()
-            cls_encoder.train()
-            decoder.train()
-            prog_decoder.train()
-
-            # Zero the gradients
             if use_traj:
                 decoder_optimizer.zero_grad()
             encoder_optimizer.zero_grad()
             cls_encoder_optimizer.zero_grad()
             combine_optimizer.zero_grad()
             prog_decoder_optimizer.zero_grad()
-        else:
-            encoder.val()
-            cls_encoder.val()
-            decoder.val()
-            prog_decoder.val()   
 
         # Encoder
         batch_size = _input.shape[0]
@@ -221,12 +223,15 @@ def train(
             # Decode timestep and velocity
             prog_decoder_features = torch.cat([encoder_hidden[0], cls_encoder_hidden_pred], dim=1)
             prog_output = prog_decoder(prog_decoder_features)
+            # timestep_pred = torch.nn.Sigmoid()(prog_output[:, 0]) * 30
+            timestep_pred = prog_output[:, 0]
+            
             # timestep_scores = prog_output[:, :-1]
             # timestep_pred = torch.argmax(timestep_scores, dim=1)
-            if total_segments != 1:
-                timestep_pred = torch.nn.Sigmoid()(prog_output[:, 0]) * 30
-            else:
-                timestep_pred = prog_output[:, 0]
+            # if total_segments != 1:
+            #     timestep_pred = torch.nn.Sigmoid()(prog_output[:, 0]) * 30
+            # else:
+            #     timestep_pred = prog_output[:, 0]
             velocity_pred = prog_output[:, -1]
 
             timestep_gt = programs[:, t, 1]
@@ -288,7 +293,8 @@ def train(
 
         # # Get average loss for pred_len
         # loss = loss / rollout_len
-        total_loss.append(loss) 
+        if mode != "Train":
+            total_loss.append(loss) 
 
         if mode == "Train":
             # Backpropagate
@@ -301,7 +307,6 @@ def train(
             if use_traj:
                 decoder_optimizer.step()
 
-        if mode == "Train":
             if global_step % 100 == 0:
                 # Log results
                 print(
@@ -560,6 +565,10 @@ def main():
         new_data_train = pd.read_pickle('Traj/train_prep.pkl')
         new_data_val = pd.read_pickle('Traj/val_prep.pkl')
         test_prep = pd.read_pickle('Traj/val_prep.pkl')
+        if args.regularized:
+            new_data_train = pd.read_pickle('Traj/train_pen_2.pkl')
+            new_data_val = pd.read_pickle('Traj/val_pen_2.pkl')
+            test_prep = pd.read_pickle('Traj/val_pen_2.pkl')
     elif args.total_segments == 1:
         new_data_train = pd.read_pickle('Traj/train_1_seg.pkl')
         new_data_val = pd.read_pickle('Traj/val_1_seg.pkl')
@@ -692,7 +701,7 @@ def main():
 
                 epoch += 1
                 with torch.no_grad():
-                    if epoch % 5 == 0:
+                    if epoch % 1 == 0:
                         start = time.time()
                         train(
                             None,
@@ -701,8 +710,8 @@ def main():
                             criterion,
                             encoder,
                             cls_encoder,
-                            decoder,
                             combine_net, 
+                            decoder,
                             prog_decoder, 
                             encoder_optimizer,
                             cls_encoder_optimizer,

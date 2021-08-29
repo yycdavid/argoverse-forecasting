@@ -19,7 +19,7 @@ def parse_arguments():
                         type=str,
                         help="path to the saved model")
     parser.add_argument("--total_segments",
-                        default=1,
+                        default=3,
                         type=int,
                         help="Number of program segments")
     parser.add_argument("--obs_len",
@@ -34,6 +34,11 @@ def parse_arguments():
         "--normalize",
         action="store_true",
         help="Normalize the trajectories if non-map baseline is used",
+    )
+    parser.add_argument(
+        "--regularized",
+        action="store_true",
+        help="Train on the regularized centerline dataset",
     )
     parser.add_argument(
         "--use_delta",
