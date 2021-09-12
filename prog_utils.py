@@ -1,6 +1,7 @@
 import argparse
 import numpy as np
 from shapely.geometry import LineString, Point
+from utils.baseline_config import FEATURE_FORMAT
 
 def parse_arguments():
     """Arguments for running the baseline.
@@ -104,6 +105,8 @@ def parse_arguments():
         help=
         "path to the pickle file where forecasted trajectories will be saved.",
     )
+    parser.add_argument('--mode', type=str, help='Mode to run the script')
+    parser.add_argument('--data_path', type=str, help='Path to data file')
     return parser.parse_args()
 
 def left_or_right(cl, p, p_proj, d):
@@ -157,3 +160,7 @@ def exec_prog(obs_xy, cl, n_step, v):
         fitted_xy.append(fitted_p)
         cur_point = fitted_p
     return fitted_xy
+
+def get_xy(feature_entry):
+    xy_traj = feature_entry[:, [FEATURE_FORMAT['X'], FEATURE_FORMAT['Y']]].astype("float")
+    return xy_traj

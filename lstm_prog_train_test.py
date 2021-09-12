@@ -3,11 +3,11 @@
 Note: The training code for these baselines is covered under the patent <PATENT_LINK>.
 
 Example usage:
-python lstm_train_test.py 
-    --model_path saved_models/lstm.pth.tar 
-    --test_features ../data/forecasting_data_test.pkl 
-    --train_features ../data/forecasting_data_train.pkl 
-    --val_features ../data/forecasting_data_val.pkl 
+python lstm_train_test.py
+    --model_path saved_models/lstm.pth.tar
+    --test_features ../data/forecasting_data_test.pkl
+    --train_features ../data/forecasting_data_train.pkl
+    --val_features ../data/forecasting_data_val.pkl
     --use_delta --normalize
 """
 
@@ -19,24 +19,24 @@ from typing import Any, Dict, List, Tuple, Union
 
 import argparse
 import joblib
-from joblib import Parallel, delayed
-import multiprocessing as mp 
+#from joblib import Parallel, delayed
+import multiprocessing as mp
 import numpy as np
-import pandas as pd 
+import pandas as pd
 import pickle as pkl
 from termcolor import cprint
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from tqdm import tqdm 
-import wandb 
+from tqdm import tqdm
+import wandb
 
 # from logger import Logger
 import utils.baseline_config as config
 import utils.baseline_utils as baseline_utils
 from utils.lstm_utils import ModelUtils, LSTMDataset
-from prog_utils import * 
-from models import * 
+from prog_utils import *
+from models import *
 
 use_cuda = torch.cuda.is_available()
 if use_cuda:
@@ -44,7 +44,7 @@ if use_cuda:
 else:
     device = torch.device("cpu")
 
-# some global variable 
+# some global variable
 global_step = 0
 best_loss = float("inf")
 prev_loss = best_loss
@@ -57,26 +57,26 @@ PROGRAM_LENS = [1, 2, 3]
 
 
 def train(
-        prep_data: Any, 
+        prep_data: Any,
         trajectory_loader: Any,
         epoch: int,
         criterion: Any,
         encoder: Any,
-        cls_encoder: Any, 
-        combine_net: Any, 
+        cls_encoder: Any,
+        combine_net: Any,
         decoder: Any,
-        prog_decoder: Any, 
+        prog_decoder: Any,
         encoder_optimizer: Any,
-        cls_encoder_optimizer: Any, 
+        cls_encoder_optimizer: Any,
         decoder_optimizer: Any,
-        prog_decoder_optimizer: Any, 
-        combine_optimizer: Any, 
+        prog_decoder_optimizer: Any,
+        combine_optimizer: Any,
         model_utils: ModelUtils,
         rollout_len: int = 30,
-        use_traj: bool = False, 
+        use_traj: bool = False,
         total_segments: int = 1,
         mode: str = "Train",
-        
+
 ) -> None:
     """Train the lstm network.
 
@@ -97,11 +97,11 @@ def train(
     args = parse_arguments()
     global global_step
     global best_loss
-    global prev_loss 
-    global decrement_counter 
-    
+    global prev_loss
+    global decrement_counter
+
     forecasted_programs = [[] for i in range(len(trajectory_loader.dataset))]
-    total_loss = [] 
+    total_loss = []
     batch_id = 0
     batch_size_all = -1
 
@@ -163,7 +163,7 @@ def train(
         # Encoder
         batch_size = _input.shape[0]
         if batch_size_all == -1:
-            batch_size_all = batch_size 
+            batch_size_all = batch_size
         cls_batch_size = cls.shape[0]
         input_length = _input.shape[1]
         centerline_length = cls.shape[1]
@@ -192,8 +192,8 @@ def train(
         # Initialize losses
         loss = 0
         traj_loss = 0
-        prog_loss = 0 
-        ce_loss = nn.CrossEntropyLoss() 
+        prog_loss = 0
+        ce_loss = nn.CrossEntropyLoss()
         mse_loss = nn.MSELoss()
 
         # Iteratively decode centerlines and compute losses
@@ -225,7 +225,7 @@ def train(
             prog_output = prog_decoder(prog_decoder_features)
             # timestep_pred = torch.nn.Sigmoid()(prog_output[:, 0]) * 30
             timestep_pred = prog_output[:, 0]
-            
+
             # timestep_scores = prog_output[:, :-1]
             # timestep_pred = torch.argmax(timestep_scores, dim=1)
             # if total_segments != 1:
@@ -262,7 +262,7 @@ def train(
 
                 # Deal with the special case of timestep = 0
                 if len(_input.size()) == 2:
-                    _input = _input.unsqueeze(0) 
+                    _input = _input.unsqueeze(0)
 
             # Decode trajectories if used for training
             if use_traj and t == 0:
@@ -287,14 +287,14 @@ def train(
         batch_id += 1
 
         if use_traj:
-            loss = traj_loss + prog_loss 
+            loss = traj_loss + prog_loss
         else:
-            loss = prog_loss 
+            loss = prog_loss
 
         # # Get average loss for pred_len
         # loss = loss / rollout_len
         if mode != "Train":
-            total_loss.append(loss) 
+            total_loss.append(loss)
 
         if mode == "Train":
             # Backpropagate
@@ -302,7 +302,7 @@ def train(
 
             encoder_optimizer.step()
             cls_encoder_optimizer.step()
-            combine_optimizer.step() 
+            combine_optimizer.step()
             prog_decoder_optimizer.step()
             if use_traj:
                 decoder_optimizer.step()
@@ -321,16 +321,16 @@ def train(
                     save_dir,
                     {
                         "epoch": epoch + 1,
-                        "global_step": global_step, 
+                        "global_step": global_step,
                         "rollout_len": rollout_len,
                         "encoder_state_dict": encoder.state_dict(),
                         "cls_encoder_state_dict": cls_encoder.state_dict(),
-                        "combine_net_state_dict": combine_net.state_dict(), 
+                        "combine_net_state_dict": combine_net.state_dict(),
                         "decoder_state_dict": decoder.state_dict(),
-                        "prog_decoder_state_dict": prog_decoder.state_dict(), 
+                        "prog_decoder_state_dict": prog_decoder.state_dict(),
                         "best_loss": loss,
                         "encoder_optimizer": encoder_optimizer.state_dict(),
-                        "cls_encoder_optimizer": cls_encoder_optimizer.state_dict(), 
+                        "cls_encoder_optimizer": cls_encoder_optimizer.state_dict(),
                         "decoder_optimizer": decoder_optimizer.state_dict(),
                         "prog_decoder_optimizer": prog_decoder_optimizer.state_dict()
                     },
@@ -345,7 +345,7 @@ def train(
     if mode == "Val":
         val_loss = sum(total_loss) / len(total_loss)
         if val_loss <= best_loss:
-            best_loss = val_loss 
+            best_loss = val_loss
 
             save_dir = "saved_models/lstm_prog_{}segment_val".format(total_segments)
             os.makedirs(save_dir, exist_ok=True)
@@ -353,16 +353,16 @@ def train(
                 save_dir,
                 {
                     "epoch": epoch + 1,
-                    "global_step": global_step, 
+                    "global_step": global_step,
                     "rollout_len": rollout_len,
                     "encoder_state_dict": encoder.state_dict(),
                     "cls_encoder_state_dict": cls_encoder.state_dict(),
-                    "combine_net_state_dict": combine_net.state_dict(), 
+                    "combine_net_state_dict": combine_net.state_dict(),
                     "decoder_state_dict": decoder.state_dict(),
-                    "prog_decoder_state_dict": prog_decoder.state_dict(), 
+                    "prog_decoder_state_dict": prog_decoder.state_dict(),
                     "best_loss": val_loss,
                     "encoder_optimizer": encoder_optimizer.state_dict(),
-                    "cls_encoder_optimizer": cls_encoder_optimizer.state_dict(), 
+                    "cls_encoder_optimizer": cls_encoder_optimizer.state_dict(),
                     "decoder_optimizer": decoder_optimizer.state_dict(),
                     "prog_decoder_optimizer": prog_decoder_optimizer.state_dict()
                 },
@@ -385,13 +385,13 @@ def train(
             pkl.dump(prep_data, f)
 
 def infer_program(
-        prep_data: Any, 
+        prep_data: Any,
         test_loader: torch.utils.data.DataLoader,
         encoder: EncoderRNN,
         cls_encoder: Any,
-        combine_net: Any,  
+        combine_net: Any,
         decoder: DecoderRNN,
-        prog_decoder: Any, 
+        prog_decoder: Any,
         model_utils: ModelUtils,
         forecasted_save_dir: str,
         total_segments: int = 1
@@ -479,7 +479,7 @@ def infer_program(
         # Reshape centerline tensor
         cls = cls.reshape(_input.shape[0], -1, cls.shape[-2], cls.shape[-1])
 
-        ce_loss = nn.CrossEntropyLoss() 
+        ce_loss = nn.CrossEntropyLoss()
         mse_loss = nn.MSELoss()
 
         for t in range(total_segments):
@@ -524,7 +524,7 @@ def infer_program(
 
             # Deal with the special case of timestep = 0
             if len(_input.size()) == 2:
-                _input = _input.unsqueeze(0) 
+                _input = _input.unsqueeze(0)
         batch_id += 1
 
     prep_data['PROG_PRED'] = forecasted_programs
@@ -533,10 +533,8 @@ def infer_program(
               "wb") as f:
         pkl.dump(prep_data, f)
 
-def main():
+def main(args):
     """Main."""
-    args = parse_arguments()
-
     if not baseline_utils.validate_args(args):
         return
 
@@ -580,9 +578,9 @@ def main():
     data_dict['train_helpers'].CANDIDATE_CENTERLINES = new_data_train.CLS_RELATIVE
     data_dict['train_helpers']['PROG'] = new_data_train.PROG
     data_dict['val_helpers'].CANDIDATE_CENTERLINES = new_data_val.CLS_RELATIVE
-    data_dict['val_helpers']['PROG'] = new_data_val.PROG 
+    data_dict['val_helpers']['PROG'] = new_data_val.PROG
     data_dict['test_helpers'].CANDIDATE_CENTERLINES = new_data_val.CLS_RELATIVE
-    data_dict['test_helpers']['PROG'] = new_data_val.PROG 
+    data_dict['test_helpers']['PROG'] = new_data_val.PROG
 
     # Get model
     criterion = nn.MSELoss()
@@ -659,8 +657,8 @@ def main():
 
         global global_step
         global best_loss
-        global prev_loss 
-        global decrement_counter 
+        global prev_loss
+        global decrement_counter
 
         epoch = start_epoch
         global_start_time = time.time()
@@ -679,16 +677,16 @@ def main():
                     criterion,
                     encoder,
                     cls_encoder,
-                    combine_net, 
+                    combine_net,
                     decoder,
-                    prog_decoder, 
+                    prog_decoder,
                     encoder_optimizer,
                     cls_encoder_optimizer,
                     decoder_optimizer,
-                    prog_decoder_optimizer, 
+                    prog_decoder_optimizer,
                     combine_optimizer,
                     model_utils,
-                    30, # disable rollout_length curriculum 
+                    30, # disable rollout_length curriculum
                     False, # do not use traj prediction for training
                     total_segments=program_len,
                     mode="Train"
@@ -710,14 +708,14 @@ def main():
                             criterion,
                             encoder,
                             cls_encoder,
-                            combine_net, 
+                            combine_net,
                             decoder,
-                            prog_decoder, 
+                            prog_decoder,
                             encoder_optimizer,
                             cls_encoder_optimizer,
                             decoder_optimizer,
                             prog_decoder_optimizer,
-                            combine_optimizer, 
+                            combine_optimizer,
                             model_utils,
                             30,
                             False,
@@ -762,13 +760,13 @@ def main():
                 encoder,
                 cls_encoder,
                 decoder,
-                combine_net, 
-                prog_decoder, 
+                combine_net,
+                prog_decoder,
                 encoder_optimizer,
                 cls_encoder_optimizer,
                 decoder_optimizer,
                 prog_decoder_optimizer,
-                combine_optimizer, 
+                combine_optimizer,
                 model_utils,
                 rollout_len=30,
                 use_traj=False,
@@ -782,4 +780,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    args = parse_arguments()
+    main(args)
