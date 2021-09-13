@@ -34,12 +34,15 @@ class LSTMDataset(Dataset):
 
         # Get input
         self.input_data = data_dict["{}_input".format(mode)]
-        if mode != "test":
+        if mode != "test" and not args.split:
             self.output_data = data_dict["{}_output".format(mode)]
         self.data_size = self.input_data.shape[0]
 
         # Get helpers
-        self.helpers = self.get_helpers()
+        if args.split:
+            self.helpers = self.get_helpers_split()
+        else:
+            self.helpers = self.get_helpers()
         self.helpers = list(zip(*self.helpers))
 
     def __len__(self):
@@ -59,15 +62,24 @@ class LSTMDataset(Dataset):
             idx: Query index
 
         Returns:
-            A list containing input Tensor, Output Tensor (Empty if test) and viz helpers. 
+            A list containing input Tensor, Output Tensor (Empty if test) and viz helpers.
 
         """
         return (
             torch.FloatTensor(self.input_data[idx]),
-            torch.empty(1) if self.mode == "test" else torch.FloatTensor(
+            torch.empty(1) if self.mode == "test" or self.args.split else torch.FloatTensor(
                 self.output_data[idx]),
             self.helpers[idx],
         )
+
+    def get_helpers_split(self):
+        helper_df = self.data_dict[f"{self.mode}_helpers"]
+        candidate_centerlines = helper_df["CANDIDATE_CENTERLINES"].values
+        programs = helper_df['PROG'].values
+        helpers = []
+        helpers.append(candidate_centerlines)
+        helpers.append(programs)
+        return tuple(helpers)
 
     def get_helpers(self) -> Tuple[Any]:
         """Get helpers for running baselines.
@@ -124,7 +136,7 @@ class ModelUtils:
     """Utils for LSTM baselines."""
     def save_checkpoint(self, save_dir: str, state: Dict[str, Any]) -> None:
         """Save checkpoint file.
-        
+
         Args:
             save_dir: Directory where model is to be saved
             state: State of the model
@@ -143,19 +155,19 @@ class ModelUtils:
             cls_encoder: Any,
             combine_net: Any,
             decoder: Any,
-            prog_decoder: Any, 
+            prog_decoder: Any,
             encoder_optimizer: Any,
-            cls_encoder_optimizer: Any, 
-            combine_net_optimizer: Any, 
+            cls_encoder_optimizer: Any,
+            combine_net_optimizer: Any,
             decoder_optimizer: Any,
-            prog_decoder_optimizer: Any 
+            prog_decoder_optimizer: Any
     ) -> Tuple[int, int, float]:
         """Load the checkpoint.
 
         Args:
             checkpoint_file: Path to checkpoint file
             encoder: Encoder model
-            decoder: Decoder model 
+            decoder: Decoder model
 
         Returns:
             epoch: epoch when the model was saved.
@@ -213,7 +225,7 @@ class ModelUtils:
         Args:
             checkpoint_file: Path to checkpoint file
             encoder: Encoder model
-            decoder: Decoder model 
+            decoder: Decoder model
 
         Returns:
             epoch: epoch when the model was saved.
@@ -253,7 +265,7 @@ class ModelUtils:
         Args:
             batch: Batch data
 
-        Returns: 
+        Returns:
             input, output and helpers in the format expected by DataLoader
 
         """
