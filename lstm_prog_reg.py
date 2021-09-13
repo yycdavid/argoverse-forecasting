@@ -2,11 +2,17 @@ from copy import copy
 import os
 import numpy as np
 import pandas as pd
-
+import torch
 from tqdm import tqdm
 
 from prog_utils import *
+import utils.baseline_utils as baseline_utils
 
+use_cuda = torch.cuda.is_available()
+if use_cuda:
+    device = torch.device("cuda")
+else:
+    device = torch.device("cpu")
 
 def main_split(args):
     """
@@ -36,12 +42,22 @@ def main_split(args):
     new_path = ss+'_split.pkl'
     result.to_pickle(new_path)
 
+def main_train(args):
+    if use_cuda:
+        print(f"Using all ({torch.cuda.device_count()}) GPUs...")
+
+    new_data_train = pd.read_pickle(args.train_path)
+    new_data_val = pd.read_pickle(args.val_path)
+
+    data_dict = baseline_utils.get_reg_prog_data(new_data_train, new_data_val, args)
+    
+
 def main():
     args = parse_arguments()
     if args.mode == 'split':
         main_split(args)
     else:
-        main(args)
+        main_train(args)
 
 if __name__ == '__main__':
     try:

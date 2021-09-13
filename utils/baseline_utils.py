@@ -6,6 +6,7 @@ import math
 import os
 import pickle as pkl
 from typing import Any, Dict, List, Optional, Tuple, Union
+from tqdm import tqdm
 
 from argoverse.map_representation.map_api import ArgoverseMap
 from joblib import Parallel, delayed
@@ -97,6 +98,43 @@ def get_data(args: Any, baseline_key: str
 
     return data_dict
 
+def get_reg_prog_data(train_data, val_data, args):
+
+    train_input, train_df = prep_prog_data(train_data, args)
+    val_input, val_df = prep_prog_data(val_data, args)
+
+    data_dict = {
+        "train_input": train_input,
+        "val_input": val_input,
+        "train_helpers": train_df,
+        "val_helpers": val_df,
+    }
+    return data_dict
+
+def prep_prog_data(data, args):
+    '''
+    input: np.ndarray(N, t, 2)
+    helpers['PROG']: [(cls, n_step, v)]
+    helpers['CANDIDATE_CENTERLINES']: [np.ndarray(T, 2)]
+    '''
+
+    processed = []
+    proc_cls_prog = []
+    for i in tqdm(range(data.shape[0])):
+        row = data.loc[i]
+        xy_traj = row.FEATURES[:, [FEATURE_FORMAT['X'], FEATURE_FORMAT['Y']]].astype("float")
+        # get relative xy
+        start = xy_traj[0, :]
+        rel_xy = (xy_traj - start)[-args.obs_len:, :]
+        processed.append(np.expand_dims(rel_xy, 0))
+        # get relative centerlines
+        rel_cls = [cl - start for cl in row.CANDIDATE_CENTERLINES]
+        proc_cls_prog.append([rel_cls, row.PROG])
+
+    input = np.concatenate(processed, axis=0)
+    df = pd.concat([pd.DataFrame([entry], columns=['CANDIDATE_CENTERLINES', 'PROG']) for entry in proc_cls_prog], ignore_index=True)
+
+    return input, df
 
 def load_and_preprocess_data(
         input_features: List[str],
@@ -115,7 +153,7 @@ def load_and_preprocess_data(
         mode (str): train/val/test
     Returns:
         _input: Input to the baseline
-        _output: Ground truth 
+        _output: Ground truth
         df: Helper values useful in visualization and evaluation
 
     """
@@ -491,7 +529,7 @@ def get_normalized_traj(df: pd.DataFrame, args: Any) -> np.ndarray:
         df (pandas Dataframe): Data for all the tracks
         args: Arguments passed to the baseline code
     Returns:
-        normalize_traj_arr (numpy array): Array of shape (num_tracks x seq_len x 2) 
+        normalize_traj_arr (numpy array): Array of shape (num_tracks x seq_len x 2)
                                           containing normalized trajectory
     Note:
         This also updates the dataframe in-place.
@@ -557,7 +595,7 @@ def normalized_to_map_coordinates(coords: np.ndarray,
     Args:
         coords (numpy array): Array of shape (num_tracks x seq_len x 2) containing normalized coordinates
         translation (list): Translation matrix used in normalizing trajectories
-        rotation (list): Rotation angle used in normalizing trajectories 
+        rotation (list): Rotation angle used in normalizing trajectories
     Returns:
         _ (numpy array: Array of shape (num_tracks x seq_len x 2) containing coordinates in map frame
 
@@ -593,7 +631,7 @@ def get_abs_traj(
         args (Argparse): Config parameters
         helpers (dict):Data helpers
         start_id (int): Start index of the current batch (used in joblib). If None, then no batching.
-    Returns:            
+    Returns:
         input_ (numpy array): Input Trajectory in map frame with shape (num_tracks x obs_len x 2)
         output (numpy array): Predicted Trajectory in map frame with shape (num_tracks x pred_len x 2)
 
@@ -624,10 +662,10 @@ def get_abs_traj(
         # for i in range(1, pred_len):
         #     output[:, i, :2] = output[:, i, :2] + output[:, i - 1, :2]
         for i in range(1, obs_len):
-            input_[:, i, :2] = input_[:, i, :2] + reference 
+            input_[:, i, :2] = input_[:, i, :2] + reference
         for i in range(0, pred_len):
             output[:, i, :2] = output[:, i, :2] + reference
-            
+
     # Convert centerline frame (n,t) to absolute frame (x,y)
     if args.use_map:
         centerlines = helpers["CENTERLINE"].copy()[s:e]
@@ -655,7 +693,7 @@ def get_model(
     """Get the trained model after running grid search or load a saved one.
 
     Args:
-        regressor: Nearest Neighbor regressor class instance 
+        regressor: Nearest Neighbor regressor class instance
         train_input: Input to the model
         train_output: Ground truth for the model
         args: Arguments passed to the baseline
