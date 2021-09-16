@@ -110,7 +110,10 @@ def parse_arguments():
     parser.add_argument('--train_path', type=str, help='Path to training data file')
     parser.add_argument('--val_path', type=str, help='Path to validation data file')
     parser.add_argument('--split', action='store_true', help='Training for splitted training set')
+    parser.add_argument('--result_dir', type=str, default='test', help='folder to store results')
+    
     return parser.parse_args()
+
 
 def left_or_right(cl, p, p_proj, d):
     '''

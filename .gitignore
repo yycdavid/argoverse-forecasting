@@ -5,3 +5,4 @@ __pycache__
 lstm_logs
 saved_models
 wandb
+results/

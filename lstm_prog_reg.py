@@ -17,6 +17,7 @@ import utils.baseline_config as config
 from utils.lstm_utils import ModelUtils, LSTMDataset
 from prog_utils import *
 from models import *
+from misc.util import OutputManager, create_dir
 
 use_cuda = torch.cuda.is_available()
 if use_cuda:
@@ -33,6 +34,7 @@ decrement_counter = 0
 np.random.seed(100)
 
 def train(
+        manager: OutputManager,
         prep_data: Any,
         trajectory_loader: Any,
         epoch: int,
@@ -207,30 +209,13 @@ def train(
 
             if global_step % 100 == 0:
                 # Log results
-                print(
+                manager.say(
                     f"Train -- Epoch:{epoch}, Step:{global_step}, Loss:{loss}, Timestep: {timestep_loss:.2f}, Centerline: {centerline_loss:.2f}, Velocity: {velocity_loss:.2f}")
 
                 # logger.scalar_summary(tag="Train/loss",
                 #                       value=loss.item(),
                 #                       step=epoch)
-                save_dir = "saved_models/lstm_prog_reg_train"
-                os.makedirs(save_dir, exist_ok=True)
-                model_utils.save_checkpoint(
-                    save_dir,
-                    {
-                        "epoch": epoch + 1,
-                        "global_step": global_step,
-                        "rollout_len": rollout_len,
-                        "encoder_state_dict": encoder.state_dict(),
-                        "cls_encoder_state_dict": cls_encoder.state_dict(),
-                        "combine_net_state_dict": combine_net.state_dict(),
-                        "prog_decoder_state_dict": prog_decoder.state_dict(),
-                        "best_loss": loss,
-                        "encoder_optimizer": encoder_optimizer.state_dict(),
-                        "cls_encoder_optimizer": cls_encoder_optimizer.state_dict(),
-                        "prog_decoder_optimizer": prog_decoder_optimizer.state_dict()
-                    },
-                )
+
             global_step += 1
             if args.wandb:
                 wandb.log({f'{mode}/loss': loss.item(),
@@ -238,12 +223,15 @@ def train(
                             f'{mode}/velocity_loss': velocity_loss.item(),
                             f'{mode}/timestep_loss': timestep_loss.item()})
     if mode == "Val":
+        # Log results
+        manager.say(
+            f"Val -- Epoch:{epoch}, Step:{global_step}, Loss:{loss}, Timestep: {timestep_loss:.2f}, Centerline: {centerline_loss:.2f}, Velocity: {velocity_loss:.2f}")
+
         val_loss = sum(total_loss) / len(total_loss)
         if val_loss <= best_loss:
             best_loss = val_loss
 
-            save_dir = "saved_models/lstm_prog_reg_val"
-            os.makedirs(save_dir, exist_ok=True)
+            save_dir = manager.result_folder
             model_utils.save_checkpoint(
                 save_dir,
                 {
@@ -299,8 +287,15 @@ def main_split(args):
     result.to_pickle(new_path)
 
 def main_train(args):
+    # Create results directory and logging
+    results_path = os.path.join("results", args.result_dir)
+    create_dir(results_path)
+    manager = OutputManager(results_path,
+    filename='log_train.txt')
+    manager.say("Log starts, exp: {}".format(args.result_dir))
+
     if use_cuda:
-        print(f"Using all ({torch.cuda.device_count()}) GPUs...")
+        manager.say(f"Using all ({torch.cuda.device_count()}) GPUs...")
 
     model_utils = ModelUtils()
 
@@ -337,14 +332,13 @@ def main_train(args):
     if args.model_path is not None and os.path.isfile(args.model_path):
         epoch, rollout_len, _ = model_utils.load_checkpoint(
             args.model_path, encoder, cls_encoder, combine_net, prog_decoder, encoder_optimizer, cls_encoder_optimizer, combine_optimizer, prog_decoder_optimizer)
-        print("{} model loaded!".format(args.model_path))
+        manager.say("{} model loaded!".format(args.model_path))
         start_epoch = epoch + 1
 
     else:
         start_epoch = 0
 
     if not args.test:
-        # TODO: starthere, change to output manager
         if args.wandb:
             wandb.init(project='traj',
                         group='lstm-prog',
@@ -371,7 +365,7 @@ def main_train(args):
             collate_fn=model_utils.my_collate_fn,
         )
 
-        print("Training begins ...")
+        manager.say("Training begins ...")
 
         global global_step
         global best_loss
@@ -386,6 +380,7 @@ def main_train(args):
         while epoch < args.end_epoch:
             start = time.time()
             train(
+                manager,
                 None,
                 train_loader,
                 epoch,
@@ -404,14 +399,14 @@ def main_train(args):
             )
             end = time.time()
 
-            print(
+            manager.say(
                 f"Training epoch completed in {(end - start) / 60.0} mins, Total time: {(end - global_start_time) / 60.0} mins"
             )
             epoch += 1
             with torch.no_grad():
                 if epoch % 3 == 0:
-                    start = time.time()
                     train(
+                        manager,
                         None,
                         val_loader,
                         epoch,
@@ -427,10 +422,6 @@ def main_train(args):
                         model_utils,
                         30,
                         mode="Val"
-                    )
-                    end = time.time()
-                    print(
-                        f"Validation completed in {(end - start) / 60.0} mins, Total time: {(end - global_start_time) / 60.0} mins"
                     )
 
                     # If val loss increased 3 times consecutively, go to next rollout length
