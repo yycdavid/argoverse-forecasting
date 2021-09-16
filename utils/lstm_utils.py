@@ -189,20 +189,23 @@ class ModelUtils:
                     checkpoint["cls_encoder_state_dict"])
                 combine_net.load_state_dict(
                     checkpoint["combine_net_state_dict"])
-                decoder.load_state_dict(
-                    checkpoint["decoder_state_dict"])
+                if decoder:
+                    decoder.load_state_dict(
+                        checkpoint["decoder_state_dict"])
                 prog_decoder.load_state_dict(
                     checkpoint["prog_decoder_state_dict"])
             else:
                 encoder.load_state_dict(checkpoint["encoder_state_dict"])
                 cls_encoder.load_state_dict(checkpoint["cls_encoder_state_dict"])
                 combine_net.load_state_dict(checkpoint["combine_net_state_dict"])
-                decoder.load_state_dict(checkpoint["decoder_state_dict"])
+                if decoder:
+                    decoder.load_state_dict(checkpoint["decoder_state_dict"])
                 prog_decoder.load_state_dict(checkpoint["prog_decoder_state_dict"])
             encoder_optimizer.load_state_dict(checkpoint["encoder_optimizer"])
             cls_encoder_optimizer.load_state_dict(checkpoint["cls_encoder_optimizer"])
             combine_net_optimizer.load_state_dict(checkpoint["cls_encoder_optimizer"])
-            decoder_optimizer.load_state_dict(checkpoint["decoder_optimizer"])
+            if decoder:
+                decoder_optimizer.load_state_dict(checkpoint["decoder_optimizer"])
             prog_decoder_optimizer.load_state_dict(checkpoint["prog_decoder_optimizer"])
             print(
                 f"=> loaded checkpoint {checkpoint_file} (epoch: {epoch}, loss: {best_loss})"

@@ -2,6 +2,7 @@ import argparse
 import numpy as np
 from shapely.geometry import LineString, Point
 from utils.baseline_config import FEATURE_FORMAT
+from tqdm import tqdm
 
 def parse_arguments():
     """Arguments for running the baseline.
@@ -109,9 +110,12 @@ def parse_arguments():
     parser.add_argument('--data_path', type=str, help='Path to data file')
     parser.add_argument('--train_path', type=str, help='Path to training data file')
     parser.add_argument('--val_path', type=str, help='Path to validation data file')
+    parser.add_argument('--test_path', type=str, help='Path to test data file')
+    parser.add_argument('--model_file', type=str, help='Model file name to load')
     parser.add_argument('--split', action='store_true', help='Training for splitted training set')
     parser.add_argument('--result_dir', type=str, default='test', help='folder to store results')
-    
+    parser.add_argument('--debug', action='store_true', help='Debug mode')
+
     return parser.parse_args()
 
 
@@ -170,3 +174,78 @@ def exec_prog(obs_xy, cl, n_step, v):
 def get_xy(feature_entry):
     xy_traj = feature_entry[:, [FEATURE_FORMAT['X'], FEATURE_FORMAT['Y']]].astype("float")
     return xy_traj
+
+def eval_prog(args, proc_df):
+    '''
+    Evaluate in FDE and ADE for saved predicted programs
+    '''
+    total_num = 5 if args.debug else proc_df.shape[0]
+    min_ades = []
+    min_fdes = []
+    cl_acc = []
+    for i in tqdm(range(total_num)):
+        example = proc_df.iloc[i]
+        xy_traj = get_xy(example.FEATURES)
+        obs_xy = xy_traj[:args.obs_len, :]
+        gt_xy = xy_traj[args.obs_len:, :]
+        cls = example.CANDIDATE_CENTERLINES
+        prog = example.PROG_PRED
+        fitted_xy = exec_prog_full(obs_xy, cls, prog, pred_len=args.pred_len)
+        #fitted_xy = fitted_xy[:args.pred_len]
+
+        min_ades.append(get_min_ade([fitted_xy], gt_xy)[0])
+        min_fdes.append(get_min_fde([fitted_xy], gt_xy)[0])
+
+        # Get centerline prediction accuracy
+        if len(prog) == 1:
+            cl_acc.append(prog[0][0] == example.PROG[0][0])
+
+    avg_ade = np.mean(min_ades)
+    avg_fde = np.mean(min_fdes)
+    return avg_ade, avg_fde, cl_acc
+
+def exec_prog_full(obs_xy, cls, prog, pred_len=30):
+    prog_len = sum([s[1] for s in prog])
+    if prog_len < pred_len:
+        prog[-1] = (prog[-1][0], pred_len - prog_len + prog[-1][1], prog[-1][2])
+    cur_point = obs_xy[-1]
+    fitted_xy = []
+    cl_strings = [LineString(cl) for cl in cls]
+    for (cl, n_step, v) in prog:
+        if n_step == 0:
+            continue
+        p_start = Point(cur_point)
+        d_start = cl_strings[cl].project(p_start)
+        p_start_proj = cl_strings[cl].interpolate(d_start)
+        offset_start = p_start.distance(p_start_proj)
+        delta_offset = offset_start / n_step
+        left = left_or_right(cl_strings[cl], p_start, p_start_proj, d_start)
+
+        for idx in range(n_step):
+            i = idx + 1
+            d = v * i + d_start
+            offset = offset_start - delta_offset * i
+            fitted_p = point_by_dist_offset(cl_strings[cl], d, left, offset)
+            fitted_xy.append(fitted_p)
+            if len(fitted_xy) >= pred_len:
+                return fitted_xy
+            cur_point = fitted_p
+    return fitted_xy
+
+def get_min_ade(pred_trajs, gt_xy):
+    min_ade = 1000000
+    min_idx = -1
+    for (i, pred_traj) in enumerate(pred_trajs):
+        ade = np.mean(np.linalg.norm(pred_traj - gt_xy, axis=1))
+        if ade < min_ade:
+            min_ade = ade
+            min_idx = i
+
+    return min_ade, min_idx
+
+def get_min_fde(pred_trajs, gt_xy):
+    fdes = [np.linalg.norm(t[-1] - gt_xy[-1]) for t in pred_trajs]
+    min_fde = min(fdes)
+    min_idx = fdes.index(min_fde)
+
+    return min_fde, min_idx

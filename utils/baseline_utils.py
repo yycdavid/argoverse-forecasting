@@ -111,6 +111,14 @@ def get_reg_prog_data(train_data, val_data, args):
     }
     return data_dict
 
+def get_test_prog_data(test_data, args):
+    test_input, test_df = prep_prog_data(test_data, args)
+    data_dict = {
+        "test_input": test_input,
+        "test_helpers": test_df,
+    }
+    return data_dict
+
 def prep_prog_data(data, args):
     '''
     input: np.ndarray(N, t, 2)
