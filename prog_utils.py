@@ -182,7 +182,6 @@ def eval_prog(args, proc_df):
     total_num = 5 if args.debug else proc_df.shape[0]
     min_ades = []
     min_fdes = []
-    cl_acc = []
     for i in tqdm(range(total_num)):
         example = proc_df.iloc[i]
         xy_traj = get_xy(example.FEATURES)
@@ -196,13 +195,9 @@ def eval_prog(args, proc_df):
         min_ades.append(get_min_ade([fitted_xy], gt_xy)[0])
         min_fdes.append(get_min_fde([fitted_xy], gt_xy)[0])
 
-        # Get centerline prediction accuracy
-        if len(prog) == 1:
-            cl_acc.append(prog[0][0] == example.PROG[0][0])
-
     avg_ade = np.mean(min_ades)
     avg_fde = np.mean(min_fdes)
-    return avg_ade, avg_fde, cl_acc
+    return avg_ade, avg_fde
 
 def exec_prog_full(obs_xy, cls, prog, pred_len=30):
     prog_len = sum([s[1] for s in prog])

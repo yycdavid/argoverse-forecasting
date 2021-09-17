@@ -444,7 +444,7 @@ def main_test(args):
 
     test_pred = infer_program(manager, new_data_test, test_loader, encoder, cls_encoder, combine_net, prog_decoder, model_utils)
 
-    avg_ade, avg_fde, cl_acc = eval_prog(args, test_pred)
+    avg_ade, avg_fde = eval_prog(args, test_pred)
     manager.say("Average min ade: {}".format(avg_ade))
     manager.say("Average min fde: {}".format(avg_fde))
     manager.say("Centerline prediction accuracy: {}".format(np.mean(cl_acc)))
@@ -558,6 +558,18 @@ def main_train(args):
             collate_fn=model_utils.my_collate_fn,
         )
 
+        new_data_test = pd.read_pickle(args.test_path)
+        test_data_dict = baseline_utils.get_test_prog_data(new_data_test, args)
+
+        test_dataset = LSTMDataset(test_data_dict, args, "test")
+        test_loader = torch.utils.data.DataLoader(
+            test_dataset,
+            batch_size=1,
+            drop_last=False,
+            shuffle=False,
+            collate_fn=model_utils.my_collate_fn,
+        )
+
         manager.say("Training begins ...")
 
         global global_step
@@ -570,6 +582,7 @@ def main_train(args):
         logger = None
         best_loss = float("inf")
         prev_loss = best_loss
+        best_ade = float("inf")
         while epoch < args.end_epoch:
             start = time.time()
             train(
@@ -617,9 +630,30 @@ def main_train(args):
                         mode="Val"
                     )
 
-                    # If val loss increased 3 times consecutively, go to next rollout length
-                    if decrement_counter > 2:
-                        break
+                    # Eval ade&fde
+                    test_pred = infer_program(manager, new_data_test, test_loader, encoder, cls_encoder, combine_net, prog_decoder, model_utils)
+
+                    avg_ade, avg_fde = eval_prog(args, test_pred)
+                    manager.say("Average min ade: {}".format(avg_ade))
+                    manager.say("Average min fde: {}".format(avg_fde))
+                    if avg_ade < best_ade:
+                        best_ade = avg_ade
+                        model_utils.save_checkpoint(
+                            manager.result_folder,
+                            {
+                                "epoch": epoch + 1,
+                                "global_step": 'best',
+                                "rollout_len": 30,
+                                "encoder_state_dict": encoder.state_dict(),
+                                "cls_encoder_state_dict": cls_encoder.state_dict(),
+                                "combine_net_state_dict": combine_net.state_dict(),
+                                "prog_decoder_state_dict": prog_decoder.state_dict(),
+                                "best_loss": best_loss,
+                                "encoder_optimizer": encoder_optimizer.state_dict(),
+                                "cls_encoder_optimizer": cls_encoder_optimizer.state_dict(),
+                                "prog_decoder_optimizer": prog_decoder_optimizer.state_dict()
+                            },
+                        )
 
 def main():
     args = parse_arguments()
