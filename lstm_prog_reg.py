@@ -34,6 +34,7 @@ decrement_counter = 0
 np.random.seed(100)
 
 def train(
+        args,
         manager: OutputManager,
         prep_data: Any,
         trajectory_loader: Any,
@@ -191,12 +192,12 @@ def train(
         # Aggregate all losses
         timestep_loss = mse_loss(timestep_pred, timestep_gt)
         velocity_loss = mse_loss(velocity_pred, velocity_gt)
-        prog_loss += centerline_loss + timestep_loss / 100 + velocity_loss * 50
+        prog_loss += centerline_loss + timestep_loss * args.t_ratio + velocity_loss * args.v_ratio
 
         batch_id += 1
         loss = prog_loss
         if mode != "Train":
-            total_loss.append(loss)
+            total_loss.append(loss.detach().cpu().numpy())
 
         if mode == "Train":
             # Backpropagate
@@ -586,6 +587,7 @@ def main_train(args):
         while epoch < args.end_epoch:
             start = time.time()
             train(
+                args,
                 manager,
                 None,
                 train_loader,
@@ -608,27 +610,31 @@ def main_train(args):
             manager.say(
                 f"Training epoch completed in {(end - start) / 60.0} mins, Total time: {(end - global_start_time) / 60.0} mins"
             )
+
+            # Validation
+            train(
+                args,
+                manager,
+                None,
+                val_loader,
+                epoch,
+                criterion,
+                encoder,
+                cls_encoder,
+                combine_net,
+                prog_decoder,
+                encoder_optimizer,
+                cls_encoder_optimizer,
+                prog_decoder_optimizer,
+                combine_optimizer,
+                model_utils,
+                30,
+                mode="Val"
+            )
+
             epoch += 1
             with torch.no_grad():
                 if epoch % 3 == 0:
-                    train(
-                        manager,
-                        None,
-                        val_loader,
-                        epoch,
-                        criterion,
-                        encoder,
-                        cls_encoder,
-                        combine_net,
-                        prog_decoder,
-                        encoder_optimizer,
-                        cls_encoder_optimizer,
-                        prog_decoder_optimizer,
-                        combine_optimizer,
-                        model_utils,
-                        30,
-                        mode="Val"
-                    )
 
                     # Eval ade&fde
                     test_pred = infer_program(manager, new_data_test, test_loader, encoder, cls_encoder, combine_net, prog_decoder, model_utils)

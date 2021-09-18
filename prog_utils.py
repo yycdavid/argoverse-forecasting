@@ -99,6 +99,14 @@ def parse_arguments():
                         type=float,
                         default=0.001,
                         help="Learning rate")
+    parser.add_argument("--t_ratio",
+                        type=float,
+                        default=0.05,
+                        help="Ratio for timestep loss")
+    parser.add_argument("--v_ratio",
+                        type=float,
+                        default=10.0,
+                        help="Ratio for velocity loss")
     parser.add_argument(
         "--traj_save_path",
         required=False,
