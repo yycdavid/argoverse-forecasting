@@ -312,6 +312,7 @@ def infer_program(
         encoder.eval()
         cls_encoder.eval()
         prog_decoder.eval()
+        combine_net.eval()
 
         # Encoder
         if batch_size_all == -1:
@@ -360,14 +361,14 @@ def infer_program(
             # Decode timestep and velocity
             prog_decoder_features = torch.cat([encoder_hidden[0], cls_encoder_hidden_pred], dim=1)
             prog_output = prog_decoder(prog_decoder_features)
-            timestep_pred = torch.nn.Sigmoid()(prog_output[:, 0]) * 30
+            timestep_pred = torch.clip(prog_output[:, 0], min=1)
             velocity_pred = prog_output[:, -1]
 
             # Decode programs into trajectories and treat them as new inputs
             # TODO: can we batch-ify this step?
             new_input = []
             for i in range(_input.shape[0]):
-                tt = int(round(float(timestep_pred[i].long().cpu())))
+                tt = int(round(float(timestep_pred[i].detach().cpu())))
                 if tt > remain_steps:
                     tt = remain_steps
                 new_input_i = exec_prog(_input[i].cpu().numpy(), centerline_pred[i].cpu().numpy(), tt, velocity_pred[i].detach().cpu().numpy())
