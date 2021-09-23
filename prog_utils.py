@@ -123,6 +123,8 @@ def parse_arguments():
     parser.add_argument('--split', action='store_true', help='Training for splitted training set')
     parser.add_argument('--result_dir', type=str, default='test', help='folder to store results')
     parser.add_argument('--debug', action='store_true', help='Debug mode')
+    parser.add_argument('--use_gt_time', action='store_true', help='Use ground truth timestep for predicted programs')
+    parser.add_argument('--v_ada', action='store_true', help='Use adaptive velocity loss based on timestep')
 
     return parser.parse_args()
 

@@ -1,0 +1,27 @@
+- What is the problem?
+    - Is timestep prediction the reason?
+        - Change eval with true time step (Done)
+            - 3.97 -> 3.1, 9.8 -> 7.8
+        - True v: 2.3, 4.8
+        - True c: 3.5, 8.5
+        - True v + t: 1.3, 2.7
+        - True t + c: 2.8, 6.2
+        - True v + c: 1.8, 3.1
+        - True v + t + c: 0.4, 0.48
+        - Seems that velocity > time > centerline in causing problems
+        - Also a discrepency between loss and ades
+    - Why centerline loss and velocity loss not as good as 1 segment?
+        - Eval on different segments, see difference (30')
+        - Visualize predictions (1h)
+- How to solve?
+    - Reduce max epoch
+    - Eval every epoch
+    - t_gt * (v - v_gt)^2
+- Is low data regime better?
+    - Both ours and baseline lSTM
+        - Ours (1h)
+        - Baseline (2h)
+
+0923 TODO:
+- Try new loss on v, run (30')
+- Set up low data regime, run (3h)

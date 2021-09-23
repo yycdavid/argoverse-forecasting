@@ -268,6 +268,7 @@ def infer_program(
         combine_net: Any,
         prog_decoder: Any,
         model_utils: ModelUtils,
+        use_gt_time=False,
 ):
     """Infer function for program-based LSTM baselines.
 
@@ -342,6 +343,7 @@ def infer_program(
         cls = cls.reshape(_input.shape[0], -1, cls.shape[-2], cls.shape[-1])
 
         remain_steps = args.pred_len
+        k = 0
 
         while remain_steps > 0:
 
@@ -371,14 +373,23 @@ def infer_program(
                 tt = int(round(float(timestep_pred[i].detach().cpu())))
                 if tt > remain_steps:
                     tt = remain_steps
-                new_input_i = exec_prog(_input[i].cpu().numpy(), centerline_pred[i].cpu().numpy(), tt, velocity_pred[i].detach().cpu().numpy())
+                vv = velocity_pred[i].detach().cpu().numpy()
+                cc = centerline_pred[i].cpu().numpy()
+                cid = centerline_pred_index[i].cpu()
+                if use_gt_time:
+                    # Comment/uncomment things to choose which ground truths to use
+                    seg = min(k, len(helpers[i][1])-1)
+                    tt = helpers[i][1][k][1]
+                    vv = helpers[i][1][seg][2]
+                    cc = cls[i][helpers[i][1][seg][0]]
+                    cid = helpers[i][1][seg][0]
+
+                new_input_i = exec_prog(_input[i].cpu().numpy(), cc, tt, vv)
                 new_input_i = torch.FloatTensor(new_input_i)
                 new_input.append(new_input_i)
-                forecasted_programs[batch_id * batch_size_all + i].append((
-                    int(centerline_pred_index[i].cpu()),
-                    tt,
-                    float(velocity_pred[i].detach().cpu())))
+                forecasted_programs[batch_id * batch_size_all + i].append((cid, tt, vv))
                 remain_steps -= tt
+                k += 1
 
             # _input = torch.FloatTensor(new_input).to(device)
             _input = torch.nn.utils.rnn.pad_sequence(new_input, batch_first=True).to(device)
@@ -444,12 +455,11 @@ def main_test(args):
         collate_fn=model_utils.my_collate_fn,
     )
 
-    test_pred = infer_program(manager, new_data_test, test_loader, encoder, cls_encoder, combine_net, prog_decoder, model_utils)
+    test_pred = infer_program(manager, new_data_test, test_loader, encoder, cls_encoder, combine_net, prog_decoder, model_utils, use_gt_time=args.use_gt_time)
 
     avg_ade, avg_fde = eval_prog(args, test_pred)
     manager.say("Average min ade: {}".format(avg_ade))
     manager.say("Average min fde: {}".format(avg_fde))
-    manager.say("Centerline prediction accuracy: {}".format(np.mean(cl_acc)))
 
     test_pred.to_pickle(os.path.join(manager.result_folder, "test_reg_new.pkl"))
 
