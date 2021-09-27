@@ -23,5 +23,13 @@
         - Baseline (2h)
 
 0923 TODO:
-- Try new loss on v, run (30')
-- Set up low data regime, run (3h)
+- Try new loss on v, run (Running)
+    - See if it makes ade etc. better
+- Set up low data regime, run (Done)
+    - Add subset (Done)
+    - Train and eval LSTM (Done)
+- Some problem with LSTM baseline training, solve it
+- Compare LSTM v.s. prog
+    - On both all data and low data
+    - Experiment script (30')
+    - Run exp (30')

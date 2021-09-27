@@ -125,6 +125,7 @@ def parse_arguments():
     parser.add_argument('--debug', action='store_true', help='Debug mode')
     parser.add_argument('--use_gt_time', action='store_true', help='Use ground truth timestep for predicted programs')
     parser.add_argument('--v_ada', action='store_true', help='Use adaptive velocity loss based on timestep')
+    parser.add_argument('--use_baseline', action='store_true', help='Use baseline LSTM')
 
     return parser.parse_args()
 

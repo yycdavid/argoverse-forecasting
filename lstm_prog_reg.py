@@ -33,6 +33,9 @@ decrement_counter = 0
 
 np.random.seed(100)
 
+ROLLOUT_LENS = [1, 10, 30]
+ROLLOUT_LENS_PROG = [30]
+
 def train(
         args,
         manager: OutputManager,
@@ -51,7 +54,6 @@ def train(
         model_utils: ModelUtils,
         rollout_len: int = 30,
         mode: str = "Train",
-
 ) -> None:
     """Train the lstm network.
 
@@ -67,7 +69,6 @@ def train(
         use_traj: whether use trajectory prediction for training
 
     """
-    args = parse_arguments()
     global global_step
     global best_loss
     global prev_loss
@@ -191,7 +192,10 @@ def train(
 
         # Aggregate all losses
         timestep_loss = mse_loss(timestep_pred, timestep_gt)
-        velocity_loss = mse_loss(velocity_pred, velocity_gt)
+        if args.v_ada:
+            velocity_loss = torch.mean(timestep_gt * (velocity_pred - velocity_gt).pow(2))
+        else:
+            velocity_loss = mse_loss(velocity_pred, velocity_gt)
         prog_loss += centerline_loss + timestep_loss * args.t_ratio + velocity_loss * args.v_ratio
 
         batch_id += 1
@@ -258,6 +262,158 @@ def train(
                         f'{mode}/centerline_loss': centerline_loss.item(),
                         f'{mode}/velocity_loss': velocity_loss.item(),
                         f'{mode}/timestep_loss': timestep_loss.item()})
+
+def train_baseline(
+    args,
+    manager: OutputManager,
+    trajectory_loader: Any,
+    epoch: int,
+    criterion: Any,
+    encoder: Any,
+    decoder: Any,
+    encoder_optimizer: Any,
+    decoder_optimizer: Any,
+    model_utils: ModelUtils,
+    rollout_len: int = 30,
+    mode: str = "Train",
+):
+    global global_step
+    global best_loss
+    global prev_loss
+    global decrement_counter
+
+    total_loss = []
+    batch_id = 0
+    batch_size_all = -1
+    if mode == "Val":
+        total_ade = 0.0
+        ade_counts = 0
+        total_fde = 0.0
+        fde_counts = 0
+
+    if mode == "Train":
+        encoder.train()
+        decoder.train()
+    else:
+        encoder.eval()
+        decoder.eval()
+
+    for _, (_input, target, helpers) in tqdm(enumerate(trajectory_loader)):
+        _input = _input.to(device)
+        target = target.to(device)
+        if mode == "Train":
+            encoder_optimizer.zero_grad()
+            decoder_optimizer.zero_grad()
+
+        # Encoder
+        batch_size = _input.shape[0]
+        if batch_size_all == -1:
+            batch_size_all = batch_size
+        input_length = _input.shape[1]
+        input_shape = _input.shape[2]
+        output_length = target.shape[1]
+
+        # Initialize encoder hidden state
+        encoder_hidden = model_utils.init_hidden(
+            batch_size,
+            encoder.module.hidden_size if use_cuda else encoder.hidden_size)
+
+        # Initialize losses
+        loss = 0
+
+        # Encode observed trajectory
+        for ei in range(input_length):
+            encoder_input = _input[:, ei, :]
+            encoder_hidden = encoder(encoder_input, encoder_hidden)
+
+        # Initialize decoder input with last coordinate in encoder
+        decoder_input = encoder_input[:, :2]
+
+        # Initialize decoder hidden state as encoder hidden state
+        decoder_hidden = encoder_hidden
+
+        decoder_outputs = torch.zeros(target.shape).to(device)
+
+        # Decode hidden state in future trajectory
+        for di in range(rollout_len):
+            decoder_output, decoder_hidden = decoder(decoder_input, decoder_hidden)
+            decoder_outputs[:, di, :] = decoder_output
+
+            # Update loss
+            pred = decoder_output[:, :2]
+            gt = target[:, di, :2]
+            loss += criterion(pred, gt)
+            import pdb; pdb.set_trace()
+
+            if mode == "Val":
+                pp = pred.detach().cpu().numpy()
+                gg = gt.detach().cpu().numpy()
+                total_ade += np.sum(np.linalg.norm(pp - gg, axis=1))
+                ade_counts += pp.shape[0]
+
+            # Use own predictions as inputs at next step
+            decoder_input = decoder_output
+
+        # Get average loss for pred_len
+        loss = loss / rollout_len
+
+        batch_id += 1
+        if mode != "Train":
+            total_loss.append(loss.detach().cpu().numpy())
+            total_fde += np.sum(np.linalg.norm(pp - gg, axis=1))
+            fde_counts += pp.shape[0]
+
+        if mode == "Train":
+            # Backpropagate
+            loss.backward()
+
+            encoder_optimizer.step()
+            decoder_optimizer.step()
+
+            if global_step % 100 == 0:
+                # Log results
+                manager.say(
+                    f"Train -- Epoch:{epoch}, Step:{global_step}, Loss:{loss}")
+
+                # logger.scalar_summary(tag="Train/loss",
+                #                       value=loss.item(),
+                #                       step=epoch)
+
+            global_step += 1
+            if args.wandb:
+                wandb.log({f'{mode}/loss': loss.item()})
+
+    if mode == "Val":
+        # Log results
+        manager.say(
+            f"Val -- Epoch:{epoch}, Step:{global_step}, Loss:{loss}")
+
+        val_loss = sum(total_loss) / len(total_loss)
+        if val_loss <= best_loss:
+            best_loss = val_loss
+
+            save_dir = manager.result_folder
+            model_utils.save_checkpoint(
+                save_dir,
+                {
+                    "epoch": epoch + 1,
+                    "global_step": global_step,
+                    "rollout_len": rollout_len,
+                    "encoder_state_dict": encoder.state_dict(),
+                    "decoder_state_dict": decoder.state_dict(),
+                    "best_loss": val_loss,
+                    "encoder_optimizer": encoder_optimizer.state_dict(),
+                    "decoder_optimizer": decoder_optimizer.state_dict()
+                },
+            )
+        if val_loss <= prev_loss:
+            decrement_counter = 0
+        else:
+            decrement_counter += 1
+        if args.wandb:
+            wandb.log({f'{mode}/loss': loss.item()})
+
+        return total_ade / ade_counts, total_fde / fde_counts
 
 def infer_program(
         manager: OutputManager,
@@ -491,6 +647,18 @@ def main_split(args):
     new_path = ss+'_split.pkl'
     result.to_pickle(new_path)
 
+def main_subset(args):
+    """
+    Getting subsets of training data
+    """
+    data = pd.read_pickle(args.data_path)
+    sizes = [1000, 5000, 10000]
+    ss = args.data_path[:-4]
+    for size in sizes:
+        subset = data.loc[:size]
+        new_path = ss + '_{}.pkl'.format(size)
+        subset.to_pickle(new_path)
+
 def main_train(args):
     # Create results directory and logging
     results_path = os.path.join("results", args.result_dir)
@@ -507,41 +675,62 @@ def main_train(args):
     new_data_train = pd.read_pickle(args.train_path)
     new_data_val = pd.read_pickle(args.val_path)
 
-    data_dict = baseline_utils.get_reg_prog_data(new_data_train, new_data_val, args)
+    if args.use_baseline:
+        data_dict = baseline_utils.get_baseline_data(new_data_train, new_data_val, args)
+    else:
+        data_dict = baseline_utils.get_reg_prog_data(new_data_train, new_data_val, args)
 
     # Get model
     criterion = nn.MSELoss()
     encoder = EncoderRNN(
         input_size=len(baseline_utils.BASELINE_INPUT_FEATURES['none']))
-    cls_encoder = EncoderRNN(input_size=2)
     # TODO: remove hardcoding of input and output sizes
-    prog_decoder = ProgDecoder(input_size=32, hidden_size=128, output_size=2)
-    combine_net = CombineNet(input_size=16*(10+1), hidden_size=256, output_size=10)
-    if use_cuda:
-        encoder = nn.DataParallel(encoder)
-        cls_encoder = nn.DataParallel(cls_encoder)
-        prog_decoder = nn.DataParallel(prog_decoder)
-        combine_net = nn.DataParallel(combine_net)
+    if args.use_baseline:
+        decoder = DecoderRNN(output_size=2)
+        if use_cuda:
+            encoder = nn.DataParallel(encoder)
+            decoder = nn.DataParallel(decoder)
+        encoder.to(device)
+        decoder.to(device)
+        encoder_optimizer = torch.optim.Adam(encoder.parameters(), lr=args.lr)
+        decoder_optimizer = torch.optim.Adam(encoder.parameters(), lr=args.lr)
 
-    encoder.to(device)
-    cls_encoder.to(device)
-    prog_decoder.to(device)
-    combine_net.to(device)
+    else:
+        cls_encoder = EncoderRNN(input_size=2)
+        prog_decoder = ProgDecoder(input_size=32, hidden_size=128, output_size=2)
+        combine_net = CombineNet(input_size=16*(10+1), hidden_size=256, output_size=10)
+        if use_cuda:
+            encoder = nn.DataParallel(encoder)
+            cls_encoder = nn.DataParallel(cls_encoder)
+            prog_decoder = nn.DataParallel(prog_decoder)
+            combine_net = nn.DataParallel(combine_net)
 
-    encoder_optimizer = torch.optim.Adam(encoder.parameters(), lr=args.lr)
-    cls_encoder_optimizer = torch.optim.Adam(cls_encoder.parameters(), lr=args.lr)
-    combine_optimizer = torch.optim.Adam(combine_net.parameters(), lr=args.lr)
-    prog_decoder_optimizer = torch.optim.Adam(prog_decoder.parameters(), lr=args.lr)
+        encoder.to(device)
+        cls_encoder.to(device)
+        prog_decoder.to(device)
+        combine_net.to(device)
+
+        encoder_optimizer = torch.optim.Adam(encoder.parameters(), lr=args.lr)
+        cls_encoder_optimizer = torch.optim.Adam(cls_encoder.parameters(), lr=args.lr)
+        combine_optimizer = torch.optim.Adam(combine_net.parameters(), lr=args.lr)
+        prog_decoder_optimizer = torch.optim.Adam(prog_decoder.parameters(), lr=args.lr)
 
     # If model_path provided, resume from saved checkpoint
     if args.model_path is not None and os.path.isfile(args.model_path):
-        epoch, rollout_len, _ = model_utils.load_checkpoint(
-            args.model_path, encoder, cls_encoder, combine_net, None, prog_decoder, encoder_optimizer, cls_encoder_optimizer, combine_optimizer, None, prog_decoder_optimizer)
+        if args.use_baseline:
+            epoch, rollout_len, _ = model_utils.load_checkpoint(
+                args.model_path, encoder, None, None, decoder, None, encoder_optimizer, None, None, decoder_optimizer, None)
+            start_rollout_idx = ROLLOUT_LENS.index(rollout_len) + 1
+        else:
+            epoch, rollout_len, _ = model_utils.load_checkpoint(
+                args.model_path, encoder, cls_encoder, combine_net, None, prog_decoder, encoder_optimizer, cls_encoder_optimizer, combine_optimizer, None, prog_decoder_optimizer)
+            start_rollout_idx = ROLLOUT_LENS_PROG.index(rollout_len) + 1
         manager.say("{} model loaded!".format(args.model_path))
         start_epoch = epoch + 1
 
     else:
         start_epoch = 0
+        start_rollout_idx = 0
 
     if not args.test:
         if args.wandb:
@@ -570,17 +759,18 @@ def main_train(args):
             collate_fn=model_utils.my_collate_fn,
         )
 
-        new_data_test = pd.read_pickle(args.test_path)
-        test_data_dict = baseline_utils.get_test_prog_data(new_data_test, args)
+        if not args.use_baseline:
+            new_data_test = pd.read_pickle(args.test_path)
+            test_data_dict = baseline_utils.get_test_prog_data(new_data_test, args)
 
-        test_dataset = LSTMDataset(test_data_dict, args, "test")
-        test_loader = torch.utils.data.DataLoader(
-            test_dataset,
-            batch_size=1,
-            drop_last=False,
-            shuffle=False,
-            collate_fn=model_utils.my_collate_fn,
-        )
+            test_dataset = LSTMDataset(test_data_dict, args, "test")
+            test_loader = torch.utils.data.DataLoader(
+                test_dataset,
+                batch_size=1,
+                drop_last=False,
+                shuffle=False,
+                collate_fn=model_utils.my_collate_fn,
+            )
 
         manager.say("Training begins ...")
 
@@ -591,66 +781,71 @@ def main_train(args):
 
         epoch = start_epoch
         global_start_time = time.time()
-        logger = None
-        best_loss = float("inf")
-        prev_loss = best_loss
-        best_ade = float("inf")
-        while epoch < args.end_epoch:
-            start = time.time()
-            train(
-                args,
-                manager,
-                None,
-                train_loader,
-                epoch,
-                criterion,
-                encoder,
-                cls_encoder,
-                combine_net,
-                prog_decoder,
-                encoder_optimizer,
-                cls_encoder_optimizer,
-                prog_decoder_optimizer,
-                combine_optimizer,
-                model_utils,
-                30, # disable rollout_length curriculum
-                mode="Train"
-            )
-            end = time.time()
+        roll_lens = ROLLOUT_LENS if args.use_baseline else ROLLOUT_LENS_PROG
+        for i in range(start_rollout_idx, len(roll_lens)):
+            rollout_len = roll_lens[i]
+            manager.say("Rollout length {}".format(rollout_len))
+            logger = None
+            best_ade = float("inf")
+            while epoch < args.end_epoch:
+                start = time.time()
+                if args.use_baseline:
+                    train_baseline(
+                        args,
+                        manager,
+                        train_loader,
+                        epoch,
+                        criterion,
+                        encoder,
+                        decoder,
+                        encoder_optimizer,
+                        decoder_optimizer,
+                        model_utils,
+                        rollout_len,
+                        mode="Train",
+                    )
+                else:
+                    train(
+                        args,
+                        manager,
+                        None,
+                        train_loader,
+                        epoch,
+                        criterion,
+                        encoder,
+                        cls_encoder,
+                        combine_net,
+                        prog_decoder,
+                        encoder_optimizer,
+                        cls_encoder_optimizer,
+                        prog_decoder_optimizer,
+                        combine_optimizer,
+                        model_utils,
+                        rollout_len, # disable rollout_length curriculum
+                        mode="Train"
+                    )
+                end = time.time()
 
-            manager.say(
-                f"Training epoch completed in {(end - start) / 60.0} mins, Total time: {(end - global_start_time) / 60.0} mins"
-            )
+                manager.say(
+                    f"Training epoch completed in {(end - start) / 60.0} mins, Total time: {(end - global_start_time) / 60.0} mins"
+                )
 
-            # Validation
-            train(
-                args,
-                manager,
-                None,
-                val_loader,
-                epoch,
-                criterion,
-                encoder,
-                cls_encoder,
-                combine_net,
-                prog_decoder,
-                encoder_optimizer,
-                cls_encoder_optimizer,
-                prog_decoder_optimizer,
-                combine_optimizer,
-                model_utils,
-                30,
-                mode="Val"
-            )
-
-            epoch += 1
-            with torch.no_grad():
-                if epoch % 3 == 0:
-
-                    # Eval ade&fde
-                    test_pred = infer_program(manager, new_data_test, test_loader, encoder, cls_encoder, combine_net, prog_decoder, model_utils)
-
-                    avg_ade, avg_fde = eval_prog(args, test_pred)
+                # Validation
+                if args.use_baseline:
+                    avg_ade, avg_fde = train_baseline(
+                        args,
+                        manager,
+                        train_loader,
+                        epoch,
+                        criterion,
+                        encoder,
+                        decoder,
+                        encoder_optimizer,
+                        decoder_optimizer,
+                        model_utils,
+                        rollout_len,
+                        mode="Val",
+                    )
                     manager.say("Average min ade: {}".format(avg_ade))
                     manager.say("Average min fde: {}".format(avg_fde))
                     if avg_ade < best_ade:
@@ -660,17 +855,66 @@ def main_train(args):
                             {
                                 "epoch": epoch + 1,
                                 "global_step": 'best',
-                                "rollout_len": 30,
+                                "rollout_len": rollout_len,
                                 "encoder_state_dict": encoder.state_dict(),
-                                "cls_encoder_state_dict": cls_encoder.state_dict(),
-                                "combine_net_state_dict": combine_net.state_dict(),
-                                "prog_decoder_state_dict": prog_decoder.state_dict(),
+                                "decoder_state_dict": decoder.state_dict(),
                                 "best_loss": best_loss,
                                 "encoder_optimizer": encoder_optimizer.state_dict(),
-                                "cls_encoder_optimizer": cls_encoder_optimizer.state_dict(),
-                                "prog_decoder_optimizer": prog_decoder_optimizer.state_dict()
+                                "decoder_optimizer": decoder_optimizer.state_dict(),
                             },
                         )
+                else:
+                    train(
+                        args,
+                        manager,
+                        None,
+                        val_loader,
+                        epoch,
+                        criterion,
+                        encoder,
+                        cls_encoder,
+                        combine_net,
+                        prog_decoder,
+                        encoder_optimizer,
+                        cls_encoder_optimizer,
+                        prog_decoder_optimizer,
+                        combine_optimizer,
+                        model_utils,
+                        rollout_len,
+                        mode="Val"
+                    )
+
+                epoch += 1
+                with torch.no_grad():
+                    if not args.use_baseline and epoch % 1 == 0:
+                        # Eval ade&fde
+                        test_pred = infer_program(manager, new_data_test, test_loader, encoder, cls_encoder, combine_net, prog_decoder, model_utils)
+
+                        avg_ade, avg_fde = eval_prog(args, test_pred)
+                        manager.say("Average min ade: {}".format(avg_ade))
+                        manager.say("Average min fde: {}".format(avg_fde))
+                        if avg_ade < best_ade:
+                            best_ade = avg_ade
+                            model_utils.save_checkpoint(
+                                manager.result_folder,
+                                {
+                                    "epoch": epoch + 1,
+                                    "global_step": 'best',
+                                    "rollout_len": rollout_len,
+                                    "encoder_state_dict": encoder.state_dict(),
+                                    "cls_encoder_state_dict": cls_encoder.state_dict(),
+                                    "combine_net_state_dict": combine_net.state_dict(),
+                                    "prog_decoder_state_dict": prog_decoder.state_dict(),
+                                    "best_loss": best_loss,
+                                    "encoder_optimizer": encoder_optimizer.state_dict(),
+                                    "cls_encoder_optimizer": cls_encoder_optimizer.state_dict(),
+                                    "prog_decoder_optimizer": prog_decoder_optimizer.state_dict()
+                                },
+                            )
+
+                if decrement_counter > 2:
+                    break
+
 
 def main():
     args = parse_arguments()
@@ -680,6 +924,8 @@ def main():
         main_train(args)
     elif args.mode == 'test':
         main_test(args)
+    elif args.mode == 'subset':
+        main_subset(args)
     else:
         assert False, "Mode not supported"
 

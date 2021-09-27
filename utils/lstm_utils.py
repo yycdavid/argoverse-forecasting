@@ -1,7 +1,7 @@
 """lstm_utils.py contains utility functions for running LSTM Baselines."""
 
 import os
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Optional
 
 import numpy as np
 import torch
@@ -39,11 +39,12 @@ class LSTMDataset(Dataset):
         self.data_size = self.input_data.shape[0]
 
         # Get helpers
-        if args.split:
-            self.helpers = self.get_helpers_split()
-        else:
-            self.helpers = self.get_helpers()
-        self.helpers = list(zip(*self.helpers))
+        if not args.use_baseline:
+            if args.split:
+                self.helpers = self.get_helpers_split()
+            else:
+                self.helpers = self.get_helpers()
+            self.helpers = list(zip(*self.helpers))
 
     def __len__(self):
         """Get length of dataset.
@@ -55,7 +56,7 @@ class LSTMDataset(Dataset):
         return self.data_size
 
     def __getitem__(self, idx: int
-                    ) -> Tuple[torch.FloatTensor, Any, Dict[str, np.ndarray]]:
+                    ) -> Tuple[torch.FloatTensor, Any, Optional[Dict[str, np.ndarray]]]:
         """Get the element at the given index.
 
         Args:
@@ -69,7 +70,7 @@ class LSTMDataset(Dataset):
             torch.FloatTensor(self.input_data[idx]),
             torch.empty(1) if self.mode == "test" or self.args.split else torch.FloatTensor(
                 self.output_data[idx]),
-            self.helpers[idx],
+            None if self.args.use_baseline else self.helpers[idx],
         )
 
     def get_helpers_split(self):
@@ -185,28 +186,31 @@ class ModelUtils:
             if use_cuda:
                 encoder.load_state_dict(
                     checkpoint["encoder_state_dict"])
-                cls_encoder.load_state_dict(
-                    checkpoint["cls_encoder_state_dict"])
-                combine_net.load_state_dict(
-                    checkpoint["combine_net_state_dict"])
+                if cls_encoder:
+                    cls_encoder.load_state_dict(
+                        checkpoint["cls_encoder_state_dict"])
+                    combine_net.load_state_dict(
+                        checkpoint["combine_net_state_dict"])
+                    prog_decoder.load_state_dict(
+                        checkpoint["prog_decoder_state_dict"])
                 if decoder:
                     decoder.load_state_dict(
                         checkpoint["decoder_state_dict"])
-                prog_decoder.load_state_dict(
-                    checkpoint["prog_decoder_state_dict"])
             else:
                 encoder.load_state_dict(checkpoint["encoder_state_dict"])
-                cls_encoder.load_state_dict(checkpoint["cls_encoder_state_dict"])
-                combine_net.load_state_dict(checkpoint["combine_net_state_dict"])
+                if cls_encoder:
+                    cls_encoder.load_state_dict(checkpoint["cls_encoder_state_dict"])
+                    combine_net.load_state_dict(checkpoint["combine_net_state_dict"])
+                    prog_decoder.load_state_dict(checkpoint["prog_decoder_state_dict"])
                 if decoder:
                     decoder.load_state_dict(checkpoint["decoder_state_dict"])
-                prog_decoder.load_state_dict(checkpoint["prog_decoder_state_dict"])
             encoder_optimizer.load_state_dict(checkpoint["encoder_optimizer"])
-            cls_encoder_optimizer.load_state_dict(checkpoint["cls_encoder_optimizer"])
-            combine_net_optimizer.load_state_dict(checkpoint["cls_encoder_optimizer"])
+            if cls_encoder:
+                cls_encoder_optimizer.load_state_dict(checkpoint["cls_encoder_optimizer"])
+                combine_net_optimizer.load_state_dict(checkpoint["cls_encoder_optimizer"])
+                prog_decoder_optimizer.load_state_dict(checkpoint["prog_decoder_optimizer"])
             if decoder:
                 decoder_optimizer.load_state_dict(checkpoint["decoder_optimizer"])
-            prog_decoder_optimizer.load_state_dict(checkpoint["prog_decoder_optimizer"])
             print(
                 f"=> loaded checkpoint {checkpoint_file} (epoch: {epoch}, loss: {best_loss})"
             )

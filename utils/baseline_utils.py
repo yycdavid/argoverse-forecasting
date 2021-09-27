@@ -99,7 +99,6 @@ def get_data(args: Any, baseline_key: str
     return data_dict
 
 def get_reg_prog_data(train_data, val_data, args):
-
     train_input, train_df = prep_prog_data(train_data, args)
     val_input, val_df = prep_prog_data(val_data, args)
 
@@ -108,6 +107,17 @@ def get_reg_prog_data(train_data, val_data, args):
         "val_input": val_input,
         "train_helpers": train_df,
         "val_helpers": val_df,
+    }
+    return data_dict
+
+def get_baseline_data(train_data, val_data, args):
+    train_input, train_output = prep_data(train_data, args)
+    val_input, val_output = prep_data(val_data, args)
+    data_dict = {
+        "train_input": train_input,
+        "val_input": val_input,
+        "train_output": train_output,
+        "val_output": val_output,
     }
     return data_dict
 
@@ -143,6 +153,23 @@ def prep_prog_data(data, args):
     df = pd.concat([pd.DataFrame([entry], columns=['CANDIDATE_CENTERLINES', 'PROG']) for entry in proc_cls_prog], ignore_index=True)
 
     return input, df
+
+def prep_data(data, args):
+    inputs = []
+    outputs = []
+    for i in tqdm(range(data.shape[0])):
+        row = data.loc[i]
+        xy_traj = row.FEATURES[:, [FEATURE_FORMAT['X'], FEATURE_FORMAT['Y']]].astype("float")
+        # get relative xy
+        start = xy_traj[0, :]
+        rel_xy = xy_traj - start
+        inputs.append(np.expand_dims(rel_xy[:args.obs_len, :], 0))
+        outputs.append(np.expand_dims(rel_xy[args.obs_len:, :], 0))
+
+    input = np.concatenate(inputs, axis=0)
+    output = np.concatenate(outputs, axis=0)
+
+    return input, output
 
 def load_and_preprocess_data(
         input_features: List[str],
